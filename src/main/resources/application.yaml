@@ -85,5 +85,6 @@ jwt:
     - "/swagger-ui/**"
     - "/v3/api-docs/**"
 blog:
-  initialization: false
+  #  initialization: false
+  initialization: true
 

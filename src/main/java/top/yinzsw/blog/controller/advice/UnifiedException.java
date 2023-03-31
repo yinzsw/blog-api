@@ -86,15 +86,24 @@ public class UnifiedException {
         return ResponseVO.fail(ResponseCodeEnum.SYSTEM_ERROR);
     }
 
-    @ExceptionHandler({MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class, MaxUploadSizeExceededException.class})
+    @ExceptionHandler({MaxUploadSizeExceededException.class, MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
     public ResponseVO<?> notValidParamsExceptionHandler(NestedRuntimeException e) {
         httpContext.setStatusCode(HttpStatus.BAD_REQUEST);
+
         if (e instanceof MaxUploadSizeExceededException) {
             return ResponseVO.fail(ResponseCodeEnum.FILE_UPLOAD_ERROR, String.format("上传文件大小不能超过%s", maxUploadFileSize));
         }
 
-        var name = e instanceof MethodArgumentTypeMismatchException ? ((MethodArgumentTypeMismatchException) e).getName() : null;
-        return ResponseVO.fail(ResponseCodeEnum.NOT_VALID_PARAMS, name);
+        if (e instanceof MethodArgumentTypeMismatchException) {
+            String name = ((MethodArgumentTypeMismatchException) e).getName();
+            return ResponseVO.fail(ResponseCodeEnum.NOT_VALID_PARAMS, name);
+        }
+
+        if (e instanceof HttpMessageNotReadableException) {
+            return ResponseVO.fail(ResponseCodeEnum.NOT_VALID_PARAMS, "HTTP消息无法读取(可能请求体缺失或类型错误)");
+        }
+
+        return ResponseVO.fail(ResponseCodeEnum.NOT_VALID_PARAMS);
     }
 
     /**
@@ -174,7 +183,7 @@ public class UnifiedException {
      */
     @ExceptionHandler(BizException.class)
     public ResponseVO<?> bizExceptionHandler(BizException e) {
-        httpContext.setStatusCode(HttpStatus.OK);
+        httpContext.setStatusCode(HttpStatus.BAD_REQUEST);
         return ResponseVO.fail(e.getCode(), e.getMessage());
     }
 

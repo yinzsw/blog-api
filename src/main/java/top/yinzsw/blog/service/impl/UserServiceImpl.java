@@ -1,6 +1,7 @@
 package top.yinzsw.blog.service.impl;
 
 import com.baomidou.mybatisplus.extension.toolkit.Db;
+import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
@@ -20,7 +21,6 @@ import top.yinzsw.blog.model.request.PasswordByEmailReq;
 import top.yinzsw.blog.model.request.PasswordByOldReq;
 import top.yinzsw.blog.model.request.UserInfoReq;
 import top.yinzsw.blog.service.UserService;
-import top.yinzsw.blog.util.CommonUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
         // TODO
         //  尝试主动更新用户token
         //  token 黑名单
-        return Db.saveBatch(CommonUtils.toList(roleIds, roleId -> new UserMtmRolePO(userId, roleId)));
+        return Db.saveBatch(SimpleQuery.list2List(roleIds, roleId -> new UserMtmRolePO(userId, roleId)));
     }
 }
 

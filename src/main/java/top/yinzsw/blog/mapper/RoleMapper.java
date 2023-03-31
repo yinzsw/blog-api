@@ -1,10 +1,11 @@
 package top.yinzsw.blog.mapper;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.CacheNamespace;
 import org.apache.ibatis.annotations.Param;
 import top.yinzsw.blog.extension.mybatisplus.CommonMapper;
 import top.yinzsw.blog.model.po.RolePO;
+
+import java.util.List;
 
 /**
  * @author yinzsW
@@ -16,13 +17,12 @@ import top.yinzsw.blog.model.po.RolePO;
 public interface RoleMapper extends CommonMapper<RolePO> {
 
     /**
-     * 分页角色
+     * 根据关键词角色列表
      *
-     * @param pager    分页器
      * @param keywords 关键词
      * @return 角色 分页
      */
-    Page<RolePO> pageSearchRoles(Page<RolePO> pager, @Param("keywords") String keywords);
+    List<RolePO> listSearchRoles(@Param("keywords") String keywords);
 }
 
 

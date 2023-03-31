@@ -1,5 +1,6 @@
 package top.yinzsw.blog.core.security;
 
+import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,7 +8,6 @@ import lombok.experimental.Accessors;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import top.yinzsw.blog.util.CommonUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -76,7 +76,7 @@ public class UserDetailsDTO implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return CommonUtils.toDistinctList(roleIds, id -> new SimpleGrantedAuthority(id.toString()));
+        return SimpleQuery.list2List(roleIds, id -> new SimpleGrantedAuthority(id.toString()));
     }
 
     @Override

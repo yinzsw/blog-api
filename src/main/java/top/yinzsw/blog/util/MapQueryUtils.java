@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -19,16 +20,16 @@ import java.util.stream.Collectors;
 
 public class MapQueryUtils<M, K> {
     private final SFunction<M, K> keyFn;
-    private final List<?> keys;
+    private final Collection<?> keys;
     private final LambdaQueryWrapper<M> queryWrapper;
 
-    private MapQueryUtils(SFunction<M, K> keyFn, List<?> keys) {
+    private MapQueryUtils(SFunction<M, K> keyFn, Collection<?> keys) {
         this.keyFn = keyFn;
         this.keys = keys;
         this.queryWrapper = Wrappers.<M>lambdaQuery().in(keyFn, keys);
     }
 
-    public static <M, K> MapQueryUtils<M, K> create(SFunction<M, K> keyFn, List<?> keys) {
+    public static <M, K> MapQueryUtils<M, K> create(SFunction<M, K> keyFn, Collection<?> keys) {
         return new MapQueryUtils<>(keyFn, keys);
     }
 

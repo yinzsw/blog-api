@@ -3,6 +3,7 @@ package top.yinzsw.blog.manager.impl;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -106,8 +107,8 @@ public class ArticleManagerImpl extends ServiceImpl<ArticleMapper, ArticlePO> im
             return new ArticleMapsDTO();
         }
 
-        List<Long> articleIds = CommonUtils.toDistinctList(articlePOList, ArticlePO::getId);
-        List<Long> categoryIds = CommonUtils.toDistinctList(articlePOList, ArticlePO::getCategoryId);
+        List<Long> articleIds = SimpleQuery.list2List(articlePOList, ArticlePO::getId);
+        List<Long> categoryIds = articlePOList.stream().map(ArticlePO::getCategoryId).distinct().collect(Collectors.toList());
 
         ArticleMapsDTO mapsDTO = new ArticleMapsDTO();
 
@@ -129,7 +130,7 @@ public class ArticleManagerImpl extends ServiceImpl<ArticleMapper, ArticlePO> im
                     .getKeyMap();
 
             Map<Long, List<TagPO>> tagsMap = tagIdsMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                    entryValue -> CommonUtils.toList(entryValue.getValue(), tagPOMap::get)));
+                    entryValue -> SimpleQuery.list2List(entryValue.getValue(), tagPOMap::get)));
             mapsDTO.setTagsMap(tagsMap);
         };
 

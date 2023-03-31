@@ -24,20 +24,12 @@ public class BizException extends RuntimeException {
     private final String message;
 
     public BizException() {
-        this(ResponseCodeEnum.FAIL);
+        this.code = ResponseCodeEnum.FAIL.getCode();
+        this.message = ResponseCodeEnum.FAIL.getDesc();
     }
 
     public BizException(String message) {
-        this(ResponseCodeEnum.FAIL, message);
-    }
-
-    public BizException(ResponseCodeEnum responseCodeEnum) {
-        this.code = responseCodeEnum.getCode();
-        this.message = responseCodeEnum.getDesc();
-    }
-
-    public BizException(ResponseCodeEnum responseCodeEnum, String message) {
-        this.code = responseCodeEnum.getCode();
+        this.code = ResponseCodeEnum.FAIL.getCode();
         this.message = message;
     }
 }

@@ -2,6 +2,7 @@ package top.yinzsw.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import top.yinzsw.blog.core.security.jwt.JwtContextDTO;
@@ -21,7 +22,6 @@ import top.yinzsw.blog.model.vo.CategoryDetailVO;
 import top.yinzsw.blog.model.vo.CategoryVO;
 import top.yinzsw.blog.model.vo.PageVO;
 import top.yinzsw.blog.service.CategoryService;
-import top.yinzsw.blog.util.CommonUtils;
 import top.yinzsw.blog.util.VerifyUtils;
 
 import java.util.List;
@@ -60,7 +60,7 @@ public class CategoryServiceImpl implements CategoryService {
         VerifyUtils.checkIPage(categoryPOPage);
 
         List<CategoryPO> categoryPOList = categoryPOPage.getRecords();
-        List<Long> categoryIds = CommonUtils.toDistinctList(categoryPOList, CategoryPO::getId);
+        List<Long> categoryIds = SimpleQuery.list2List(categoryPOList, CategoryPO::getId);
         Long uid = JwtManager.getCurrentContextDTO().map(JwtContextDTO::getUid).orElse(null);
         Map<Long, Long> articleCountMap = articleMapper.listCategoryArticleCount(categoryIds, uid).stream()
                 .collect(Collectors.toMap(CategoryArticleNumDTO::getCategoryId, CategoryArticleNumDTO::getArticleCount));

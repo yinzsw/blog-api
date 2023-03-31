@@ -2,6 +2,7 @@ package top.yinzsw.blog.core.security.jwt;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Sequence;
+import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +12,6 @@ import lombok.experimental.Accessors;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import top.yinzsw.blog.enums.TokenTypeEnum;
-import top.yinzsw.blog.util.CommonUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -63,14 +63,14 @@ public class JwtContextDTO {
     }
 
     public JwtContextDTO setType(TokenTypeEnum type) {
-        this.exp = Sequence.parseIdTimestamp(this.vid) + type.getTtl();
+        this.exp = Sequence.parseIdTimestamp(this.vid) / 1000 + type.getTtl();
         this.type = type;
         return this;
     }
 
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return CommonUtils.toDistinctList(roles, role -> new SimpleGrantedAuthority(role.toString()));
+        return SimpleQuery.list2List(roles, role -> new SimpleGrantedAuthority(role.toString()));
     }
 
     @JsonIgnore

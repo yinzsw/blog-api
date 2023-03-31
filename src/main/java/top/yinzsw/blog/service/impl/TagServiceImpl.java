@@ -2,6 +2,7 @@ package top.yinzsw.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import top.yinzsw.blog.exception.BizException;
@@ -18,7 +19,6 @@ import top.yinzsw.blog.model.vo.PageVO;
 import top.yinzsw.blog.model.vo.TagBackgroundSearchVO;
 import top.yinzsw.blog.model.vo.TagVO;
 import top.yinzsw.blog.service.TagService;
-import top.yinzsw.blog.util.CommonUtils;
 import top.yinzsw.blog.util.VerifyUtils;
 
 import java.util.List;
@@ -56,7 +56,7 @@ public class TagServiceImpl implements TagService {
         VerifyUtils.checkIPage(tagPOPage);
 
         List<TagPO> tagPOList = tagPOPage.getRecords();
-        List<Long> tagIds = CommonUtils.toList(tagPOList, TagPO::getId);
+        List<Long> tagIds = SimpleQuery.list2List(tagPOList, TagPO::getId);
         Map<Long, Long> articleCountMap = articleMtmTagMapper.listTagArticleCount(tagIds).stream()
                 .collect(Collectors.toMap(TagArticleNumDTO::getTagId, TagArticleNumDTO::getArticleCount));
 

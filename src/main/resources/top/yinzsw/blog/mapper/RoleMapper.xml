@@ -3,7 +3,7 @@
 <mapper namespace="top.yinzsw.blog.mapper.RoleMapper">
     <cache-ref namespace="top.yinzsw.blog.mapper.RoleMapper"/>
 
-    <select id="pageSearchRoles" resultType="top.yinzsw.blog.model.po.RolePO">
+    <select id="listSearchRoles" resultType="top.yinzsw.blog.model.po.RolePO">
         SELECT `id`, `role_name`, `role_label`, `is_disabled`, `create_time`
         FROM `role`
         <where>

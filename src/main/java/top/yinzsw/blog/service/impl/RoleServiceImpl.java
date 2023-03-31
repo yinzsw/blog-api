@@ -1,7 +1,7 @@
 package top.yinzsw.blog.service.impl;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
+import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.stereotype.Service;
@@ -15,15 +15,11 @@ import top.yinzsw.blog.model.po.RoleMtmMenuPO;
 import top.yinzsw.blog.model.po.RoleMtmResourcePO;
 import top.yinzsw.blog.model.po.RolePO;
 import top.yinzsw.blog.model.po.UserMtmRolePO;
-import top.yinzsw.blog.model.request.PageReq;
 import top.yinzsw.blog.model.request.RoleReq;
-import top.yinzsw.blog.model.vo.PageVO;
 import top.yinzsw.blog.model.vo.RoleBackgroundVO;
 import top.yinzsw.blog.model.vo.RoleVO;
 import top.yinzsw.blog.service.RoleService;
-import top.yinzsw.blog.util.CommonUtils;
 import top.yinzsw.blog.util.MapQueryUtils;
-import top.yinzsw.blog.util.VerifyUtils;
 
 import java.util.List;
 
@@ -55,25 +51,17 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public PageVO<RoleVO> pageSearchRoleVO(PageReq pageReq, String keywords) {
-        Page<RolePO> rolePOPage = roleMapper.pageSearchRoles(pageReq.getPager(), keywords);
-
-        VerifyUtils.checkIPage(rolePOPage);
-
-        List<RoleVO> roleVOList = roleConverter.toRoleDigestVO(rolePOPage.getRecords());
-        return new PageVO<>(roleVOList, rolePOPage.getTotal());
+    public List<RoleVO> listSearchRoleVO(String keywords) {
+        List<RolePO> roles = roleMapper.listSearchRoles(keywords);
+        return roleConverter.toRoleDigestVO(roles);
     }
 
     @Override
-    public PageVO<RoleBackgroundVO> pageBackgroundRoles(PageReq pageReq, String keywords) {
-        Page<RolePO> rolePOPage = roleMapper.pageSearchRoles(pageReq.getPager(), keywords);
+    public List<RoleBackgroundVO> listBackgroundRoles(String keywords) {
+        List<RolePO> roles = roleMapper.listSearchRoles(keywords);
 
-        VerifyUtils.checkIPage(rolePOPage);
-
-        List<RolePO> rolePOList = rolePOPage.getRecords();
-        RoleMapsDTO roleMapsDTO = roleManager.getRoleMapsDTO(CommonUtils.toList(rolePOList, RolePO::getId));
-        List<RoleBackgroundVO> roleBackgroundVOList = roleConverter.toRoleSearchVO(rolePOList, roleMapsDTO);
-        return new PageVO<>(roleBackgroundVOList, rolePOPage.getTotal());
+        RoleMapsDTO roleMapsDTO = roleManager.getRoleMapsDTO(SimpleQuery.list2List(roles, RolePO::getId));
+        return roleConverter.toRoleBackgroundVO(roles, roleMapsDTO);
     }
 
     @Override
@@ -102,8 +90,8 @@ public class RoleServiceImpl implements RoleService {
         Long roleId = rolePO.getId();
         Db.lambdaUpdate(RoleMtmMenuPO.class).eq(RoleMtmMenuPO::getRoleId, roleId).remove();
         Db.lambdaUpdate(RoleMtmResourcePO.class).eq(RoleMtmResourcePO::getRoleId, roleId).remove();
-        Db.saveBatch(CommonUtils.toList(roleReq.getMenuIds(), menuId -> new RoleMtmMenuPO(roleId, menuId)));
-        Db.saveBatch(CommonUtils.toList(roleReq.getResourceIds(), resourceId -> new RoleMtmResourcePO(roleId, resourceId)));
+        Db.saveBatch(SimpleQuery.list2List(roleReq.getMenuIds(), menuId -> new RoleMtmMenuPO(roleId, menuId)));
+        Db.saveBatch(SimpleQuery.list2List(roleReq.getResourceIds(), resourceId -> new RoleMtmResourcePO(roleId, resourceId)));
         return true;
     }
 

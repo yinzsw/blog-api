@@ -19,7 +19,7 @@ public interface RoleConverter {
 
     List<RoleVO> toRoleDigestVO(List<RolePO> rolePOList);
 
-    List<RoleBackgroundVO> toRoleSearchVO(List<RolePO> rolePOList, @Context RoleMapsDTO roleMapsDTO);
+    List<RoleBackgroundVO> toRoleBackgroundVO(List<RolePO> rolePOList, @Context RoleMapsDTO roleMapsDTO);
 
     @SuppressWarnings("unchecked")
     @ObjectFactory

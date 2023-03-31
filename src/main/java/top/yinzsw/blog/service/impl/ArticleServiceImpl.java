@@ -3,6 +3,7 @@ package top.yinzsw.blog.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
+import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
@@ -33,7 +34,6 @@ import top.yinzsw.blog.model.request.ArticleReq;
 import top.yinzsw.blog.model.request.PageReq;
 import top.yinzsw.blog.model.vo.*;
 import top.yinzsw.blog.service.ArticleService;
-import top.yinzsw.blog.util.CommonUtils;
 import top.yinzsw.blog.util.MapQueryUtils;
 import top.yinzsw.blog.util.VerifyUtils;
 
@@ -215,7 +215,7 @@ public class ArticleServiceImpl implements ArticleService {
         }
 
         //保存文章与标签的映射关系
-        Db.saveBatch(CommonUtils.toList(existTagIds, tagId -> new ArticleMtmTagPO(articleReq.getId(), tagId)));
+        Db.saveBatch(SimpleQuery.list2List(existTagIds, tagId -> new ArticleMtmTagPO(articleReq.getId(), tagId)));
 
         //设置文章默认封面
         if (!StringUtils.hasText(articleReq.getArticleCover())) {

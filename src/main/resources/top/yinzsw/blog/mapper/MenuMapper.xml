@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.yinzsw.blog.mapper.MenuMapper">
+    <cache-ref namespace="top.yinzsw.blog.mapper.MenuMapper"/>
+
+    <resultMap id="groupMenuDTO" type="top.yinzsw.blog.model.dto.GroupMenuDTO" autoMapping="true">
+        <id property="menuId" column="menu_id"/>
+        <collection property="roles" ofType="top.yinzsw.blog.model.po.RolePO" autoMapping="true"
+                    notNullColumn="role_id">
+            <id property="id" column="role_id"/>
+        </collection>
+    </resultMap>
+
+    <select id="listMenus" resultMap="groupMenuDTO">
+        SELECT `m`.`id` AS `menu_id`,
+               `m`.`parent_id`,
+               `m`.`name`,
+               `m`.`title`,
+               `m`.`icon_path`,
+               `m`.`is_hidden`,
+               `m`.`create_time`,
+               `r`.`id` AS `role_id`,
+               `r`.`role_name`,
+               `r`.`role_label`
+        FROM `menu` `m`
+                 LEFT JOIN `role_mtm_menu` `rmm` ON `m`.`id` = `rmm`.`menu_id`
+                 LEFT JOIN `role` `r` ON `rmm`.`role_id` = `r`.`id`
+        ORDER BY `order_num`
+    </select>
+
+</mapper>

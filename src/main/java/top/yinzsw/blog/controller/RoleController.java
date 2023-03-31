@@ -6,9 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import top.yinzsw.blog.model.request.PageReq;
 import top.yinzsw.blog.model.request.RoleReq;
-import top.yinzsw.blog.model.vo.PageVO;
 import top.yinzsw.blog.model.vo.RoleBackgroundVO;
 import top.yinzsw.blog.model.vo.RoleVO;
 import top.yinzsw.blog.service.RoleService;
@@ -32,18 +30,16 @@ public class RoleController {
 
     @Operation(summary = "搜索用户角色")
     @GetMapping("keywords/{keywords}")
-    public PageVO<RoleVO> pageSearchRoleVO(@Valid PageReq pageReq,
-                                           @Parameter(description = "用户名关键词", required = true)
-                                           @PathVariable("keywords") String keywords) {
-        return roleService.pageSearchRoleVO(pageReq, keywords);
+    public List<RoleVO> listSearchRoleVO(@Parameter(description = "用户名关键词", required = true)
+                                         @PathVariable("keywords") String keywords) {
+        return roleService.listSearchRoleVO(keywords);
     }
 
     @Operation(summary = "查询用户角详情")
     @GetMapping("background/keywords/{keywords}")
-    public PageVO<RoleBackgroundVO> pageBackgroundRoles(@Valid PageReq pageReq,
-                                                        @Parameter(description = "用户名关键词", required = true)
-                                                        @PathVariable("keywords") String keywords) {
-        return roleService.pageBackgroundRoles(pageReq, keywords);
+    public List<RoleBackgroundVO> listBackgroundRoles(@Parameter(description = "用户名关键词", required = true)
+                                                      @PathVariable("keywords") String keywords) {
+        return roleService.listBackgroundRoles(keywords);
     }
 
     @Operation(summary = "更新角色禁用状态")

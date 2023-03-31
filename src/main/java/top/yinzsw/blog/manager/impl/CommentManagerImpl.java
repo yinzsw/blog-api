@@ -2,6 +2,7 @@ package top.yinzsw.blog.manager.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import org.springframework.stereotype.Service;
 import top.yinzsw.blog.enums.CommentOrderTypeEnum;
 import top.yinzsw.blog.enums.TopicTypeEnum;
@@ -9,7 +10,6 @@ import top.yinzsw.blog.manager.CommentManager;
 import top.yinzsw.blog.mapper.CommentMapper;
 import top.yinzsw.blog.model.po.CommentPO;
 import top.yinzsw.blog.model.request.CommentQueryReq;
-import top.yinzsw.blog.util.CommonUtils;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ public class CommentManagerImpl extends ServiceImpl<CommentMapper, CommentPO> im
                 .orderByDesc(CommentOrderTypeEnum.HOT.equals(commentQueryReq.getOrderType()), CommentPO::getLikedCount)
                 .page(pager);
 
-        List<Long> commentIds = CommonUtils.toDistinctList(commentPOPage.getRecords(), CommentPO::getId);
+        List<Long> commentIds = SimpleQuery.list2List(commentPOPage.getRecords(), CommentPO::getId);
         return new Page<Long>().setRecords(commentIds).setTotal(commentPOPage.getTotal());
     }
 

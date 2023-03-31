@@ -17,6 +17,9 @@ spring:
     username: root
     password: toor
     virtual-host: /
+mybatis-plus:
+  configuration:
+    cache-enabled: false
 logging.level:
   top.yinzsw.blog.mapper: debug
 springdoc:

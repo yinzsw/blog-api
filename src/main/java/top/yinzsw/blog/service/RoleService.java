@@ -1,8 +1,6 @@
 package top.yinzsw.blog.service;
 
-import top.yinzsw.blog.model.request.PageReq;
 import top.yinzsw.blog.model.request.RoleReq;
-import top.yinzsw.blog.model.vo.PageVO;
 import top.yinzsw.blog.model.vo.RoleBackgroundVO;
 import top.yinzsw.blog.model.vo.RoleVO;
 
@@ -34,19 +32,17 @@ public interface RoleService {
     /**
      * 获取角色列表
      *
-     * @param pageReq 分页信息
      * @return 角色列表
      */
-    PageVO<RoleVO> pageSearchRoleVO(PageReq pageReq, String keywords);
+    List<RoleVO> listSearchRoleVO(String keywords);
 
     /**
-     * 根据用户名关键词 分页获取所有用户角色信息
+     * 根据用户名关键词 获取用户角色所有信息
      *
-     * @param pageReq  分页信息
      * @param keywords 用户名关键词
      * @return 用户角色列表信息
      */
-    PageVO<RoleBackgroundVO> pageBackgroundRoles(PageReq pageReq, String keywords);
+    List<RoleBackgroundVO> listBackgroundRoles(String keywords);
 
     /**
      * 更新角色禁用状态
