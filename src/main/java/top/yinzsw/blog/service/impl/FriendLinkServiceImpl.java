@@ -9,10 +9,10 @@ import top.yinzsw.blog.model.converter.FriendLinkConverter;
 import top.yinzsw.blog.model.po.FriendLinkPO;
 import top.yinzsw.blog.model.request.FriendLinkReq;
 import top.yinzsw.blog.model.request.PageReq;
+import top.yinzsw.blog.model.vo.FriendLinkBackgroundVO;
 import top.yinzsw.blog.model.vo.FriendLinkVO;
 import top.yinzsw.blog.model.vo.PageVO;
 import top.yinzsw.blog.service.FriendLinkService;
-import top.yinzsw.blog.util.VerifyUtils;
 
 import java.util.List;
 
@@ -29,13 +29,16 @@ public class FriendLinkServiceImpl implements FriendLinkService {
     private final FriendLinkConverter friendLinkConverter;
 
     @Override
-    public PageVO<FriendLinkVO> pageSearchFriendLinks(PageReq pageReq, String keywords) {
-        Page<FriendLinkPO> friendLinkPOPage = friendLinkMapper.pageSearchFriendLinks(pageReq.getPager(), keywords);
-
-        VerifyUtils.checkIPage(friendLinkPOPage);
-
+    public PageVO<FriendLinkVO> pageFriendLinks(PageReq pageReq) {
+        Page<FriendLinkPO> friendLinkPOPage = friendLinkManager.lambdaQuery().page(pageReq.getPager());
         List<FriendLinkVO> friendLinkVOList = friendLinkConverter.toFriendLinkVO(friendLinkPOPage.getRecords());
-        return new PageVO<>(friendLinkVOList, friendLinkPOPage.getTotal());
+        return PageVO.getPageVO(friendLinkVOList, friendLinkPOPage.getTotal());
+    }
+
+    @Override
+    public PageVO<FriendLinkBackgroundVO> pageBackgroundFriendLinks(PageReq pageReq, String keywords) {
+        Page<FriendLinkBackgroundVO> friendLinkVOPage = friendLinkMapper.pageSearchFriendLinks(pageReq.getPager(), keywords);
+        return PageVO.getPageVO(friendLinkVOPage.getRecords(), friendLinkVOPage.getTotal());
     }
 
     @Override

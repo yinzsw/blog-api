@@ -30,4 +30,10 @@ public class CategoryVO {
      */
     @Schema(title = "分类名")
     private String categoryName;
+
+    /**
+     * 该分类下的文章数量
+     */
+    @Schema(title = "文章数量")
+    private Long articleCount;
 }

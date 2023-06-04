@@ -20,14 +20,16 @@ import java.util.Optional;
 @Component
 public class PagingAspect {
 
-    @Before(value = "top.yinzsw.blog.core.aop.PointCutProvider.isSelfPagingApi()")
+    @Before(value = "top.yinzsw.blog.core.aop.PointCutProvider.isPagingApi()")
     public void beforeAdvice(JoinPoint joinPoint) {
         Arrays.stream(joinPoint.getArgs())
                 .filter(o -> o instanceof PageReq)
                 .map(o -> (PageReq) o)
                 .findFirst()
-                .ifPresent(pageReq -> pageReq
-                        .setPage(Optional.ofNullable(pageReq.getPage()).orElse(1L))
-                        .setSize(Optional.ofNullable(pageReq.getSize()).orElse(10L)));
+                .ifPresent(pageReq -> {
+                    var page = Math.max(Optional.ofNullable(pageReq.getPage()).orElse(1L), 1L);
+                    var size = Math.max(Optional.ofNullable(pageReq.getSize()).orElse(10L), 1L);
+                    pageReq.setPage(page).setSize(size);
+                });
     }
 }

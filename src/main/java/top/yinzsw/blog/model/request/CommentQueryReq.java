@@ -28,20 +28,21 @@ public class CommentQueryReq {
     /**
      * 主题id
      */
-    @NotNull(message = "主题id不可为空")
-    @Min(value = 1, message = "不合法的分类id: ${validatedValue}")
+    @Min(value = 1, message = "不合法的主题id: ${validatedValue}")
     @Parameter(description = "主题id")
     private Long topicId;
 
     /**
      * 主题类型
      */
+    @NotNull(message = "主题类型不可为空")
     @Parameter(description = "主题类型")
     private TopicTypeEnum topicType;
 
     /**
      * 排序方式
      */
+    @NotNull(message = "排序方式不可为空")
     @Parameter(description = "排序方式")
     private CommentOrderTypeEnum orderType;
 }

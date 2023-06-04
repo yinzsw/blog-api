@@ -1,15 +1,95 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="top.yinzsw.blog.mapper.TagMapper">
-    <cache-ref namespace="top.yinzsw.blog.mapper.TagMapper"/>
 
-    <select id="pageSearchTags" resultType="top.yinzsw.blog.model.po.TagPO">
-        SELECT `id`, `tag_name`, `create_time`
+    <select id="listTags" resultType="top.yinzsw.blog.model.vo.TagVO">
+        SELECT `t`.`id`, `t`.`tag_name`, COUNT(`a`.`id`) AS `article_count`
+        FROM (SELECT `id`
+        FROM `article`
+        WHERE `is_deleted` = 0
+        AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))) `a`
+        INNER JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+        INNER JOIN `tag` `t` ON `t`.`id` = `amt`.`tag_id`
+        GROUP BY `t`.`id`
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="countTags" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM (SELECT `amt`.`tag_id`
+        FROM (SELECT `id`
+        FROM `article`
+        WHERE `is_deleted` = 0
+        AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))) `a`
+        INNER JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+        GROUP BY `amt`.`tag_id`) `tt`
+    </select>
+
+    <select id="listHotTagsLimit10" resultType="top.yinzsw.blog.model.vo.TagVO">
+        SELECT `t`.`id`, `t`.`tag_name`, COUNT(`a`.`id`) AS `article_count`
+        FROM (SELECT `id`
+        FROM `article`
+        WHERE `is_deleted` = 0
+        AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))) `a`
+        INNER JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+        INNER JOIN `tag` `t` ON `t`.`id` = `amt`.`tag_id`
+        GROUP BY `t`.`id`
+        ORDER BY `article_count` DESC, `t`.`id` DESC
+        LIMIT 10
+    </select>
+
+    <select id="listBackgroundTags" resultType="top.yinzsw.blog.model.vo.TagBackgroundVO">
+        SELECT `t`.`id`,
+        `t`.`tag_name`,
+        `t`.`create_time`,
+        `t`.`update_time`,
+        COUNT(`amt`.`article_id`) AS `article_count`
+        FROM (SELECT `id`, `tag_name`, `create_time`, `update_time`
         FROM `tag`
         <where>
-            <if test="name != null and name != ''">
-                MATCH(`tag_name`) AGAINST(#{name} IN BOOLEAN MODE)
+            <if test="keywords != null and keywords.length() > 2">
+                MATCH(`tag_name`) AGAINST(#{keywords} IN BOOLEAN MODE)
+            </if>
+            <if test="keywords != null and 2 >= keywords.length()">
+                <bind name="pattern" value="'%' + keywords + '%'"/>
+                AND `tag_name` LIKE #{pattern}
             </if>
         </where>
+        LIMIT #{page.offset},#{page.size}) `t`
+        LEFT JOIN `article_mtm_tag` `amt` ON `t`.`id` = `amt`.`tag_id`
+        GROUP BY `t`.`id`
+    </select>
+
+    <select id="countBackgroundTags" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM `tag`
+        <where>
+            <if test="keywords != null and keywords.length() > 2">
+                MATCH(`tag_name`) AGAINST(#{keywords} IN BOOLEAN MODE)
+            </if>
+            <if test="keywords != null and 2 >= keywords.length()">
+                <bind name="pattern" value="'%' + keywords + '%'"/>
+                AND `tag_name` LIKE #{pattern}
+            </if>
+        </where>
+    </select>
+
+    <insert id="saveTagNamesIgnoreDuplicateKey">
+        INSERT IGNORE INTO `tag` (`tag_name`)
+        VALUES
+        <foreach collection="tags" separator="," item="tag">(#{tag})</foreach>
+    </insert>
+
+    <select id="listHotPercentTagsLimit50" resultType="top.yinzsw.blog.model.vo.StatisticsNameCountVO">
+        SELECT `t`.`tag_name`  AS `name`,
+               COUNT(`a`.`id`) AS `count`
+        FROM (SELECT `id`
+              FROM `article`
+              WHERE `is_deleted` = 0 AND `article_status` IN (1, 2)) `a`
+                 INNER JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+                 INNER JOIN `tag` `t` ON `t`.`id` = `amt`.`tag_id`
+        GROUP BY `t`.`id`
+        ORDER BY `count` DESC, `t`.`id` DESC
+        LIMIT 50
     </select>
 </mapper>

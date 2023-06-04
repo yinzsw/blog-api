@@ -12,9 +12,11 @@ import org.springframework.context.annotation.Configuration;
  * @author yinzsW
  * @since 23/01/01
  */
-@Configuration
+
 @EnableRabbit
+@Configuration
 public class RabbitConfig {
+
     /**
      * 使用Json序列化消息
      *

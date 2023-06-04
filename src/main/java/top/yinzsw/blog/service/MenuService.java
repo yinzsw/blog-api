@@ -1,7 +1,7 @@
 package top.yinzsw.blog.service;
 
 import top.yinzsw.blog.model.request.MenuReq;
-import top.yinzsw.blog.model.vo.MenuDataVO;
+import top.yinzsw.blog.model.vo.MenuBackgroundVO;
 import top.yinzsw.blog.model.vo.MenuVO;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public interface MenuService {
      *
      * @return 菜单列表
      */
-    List<MenuDataVO> listMenus();
+    List<MenuBackgroundVO> listBackgroundMenus();
 
     /**
      * 获取可访问菜单列表

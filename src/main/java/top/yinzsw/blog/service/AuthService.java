@@ -1,5 +1,6 @@
 package top.yinzsw.blog.service;
 
+import top.yinzsw.blog.model.request.LoginReq;
 import top.yinzsw.blog.model.vo.TokenVO;
 import top.yinzsw.blog.model.vo.UserInfoVO;
 
@@ -15,11 +16,10 @@ public interface AuthService {
     /**
      * 用户登录
      *
-     * @param username 用户名
-     * @param password 密码
+     * @param loginReq 用户名
      * @return 用户信息
      */
-    UserInfoVO login(String username, String password);
+    UserInfoVO login(LoginReq loginReq);
 
     /**
      * 刷新用户token

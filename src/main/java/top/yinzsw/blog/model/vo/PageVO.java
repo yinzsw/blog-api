@@ -1,11 +1,11 @@
 package top.yinzsw.blog.model.vo;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -15,8 +15,6 @@ import java.util.List;
  * @since 23/01/09
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Accessors(chain = true)
 @Schema(description = "分页数据")
 public class PageVO<T> {
@@ -32,4 +30,19 @@ public class PageVO<T> {
      */
     @Schema(title = "总记录数")
     private Long count;
+
+    private PageVO() {
+    }
+
+    public static <T> PageVO<T> getEmptyPageVO() {
+        return PageVO.getPageVO(Collections.emptyList(), 0L);
+    }
+
+    public static <T> PageVO<T> getPageVO(IPage<T> page) {
+        return PageVO.getPageVO(page.getRecords(), page.getTotal());
+    }
+
+    public static <T> PageVO<T> getPageVO(List<T> records, Long count) {
+        return new PageVO<T>().setRecords(records).setCount(count);
+    }
 }

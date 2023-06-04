@@ -1,6 +1,5 @@
 package top.yinzsw.blog.service.impl;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
@@ -12,35 +11,40 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import top.yinzsw.blog.core.context.HttpContext;
-import top.yinzsw.blog.core.security.jwt.JwtContextDTO;
+import top.yinzsw.blog.constant.CommonConst;
 import top.yinzsw.blog.core.security.jwt.JwtManager;
+import top.yinzsw.blog.core.security.jwt.JwtTokenDTO;
+import top.yinzsw.blog.core.system.HttpContext;
 import top.yinzsw.blog.core.upload.UploadProvider;
+import top.yinzsw.blog.enums.ArticleStatusEnum;
+import top.yinzsw.blog.enums.ArticleTypeEnum;
 import top.yinzsw.blog.enums.FilePathEnum;
-import top.yinzsw.blog.enums.TopicTypeEnum;
 import top.yinzsw.blog.exception.BizException;
 import top.yinzsw.blog.manager.ArticleManager;
 import top.yinzsw.blog.manager.CategoryManager;
-import top.yinzsw.blog.manager.LikeManager;
-import top.yinzsw.blog.manager.WebConfigManager;
+import top.yinzsw.blog.manager.SystemWebManager;
+import top.yinzsw.blog.manager.TagManager;
 import top.yinzsw.blog.mapper.ArticleMapper;
-import top.yinzsw.blog.mapper.ArticleMtmTagMapper;
+import top.yinzsw.blog.mapper.TagMapper;
 import top.yinzsw.blog.model.converter.ArticleConverter;
-import top.yinzsw.blog.model.dto.ArticleMapsDTO;
-import top.yinzsw.blog.model.dto.QueryBackgArticleDTO;
-import top.yinzsw.blog.model.po.*;
+import top.yinzsw.blog.model.dto.QueryPreviewArticleDTO;
+import top.yinzsw.blog.model.po.ArticleMtmTagPO;
+import top.yinzsw.blog.model.po.ArticlePO;
+import top.yinzsw.blog.model.po.CategoryPO;
+import top.yinzsw.blog.model.po.TagPO;
 import top.yinzsw.blog.model.request.ArticleQueryReq;
 import top.yinzsw.blog.model.request.ArticleReq;
 import top.yinzsw.blog.model.request.PageReq;
 import top.yinzsw.blog.model.vo.*;
 import top.yinzsw.blog.service.ArticleService;
-import top.yinzsw.blog.util.MapQueryUtils;
-import top.yinzsw.blog.util.VerifyUtils;
 
-import java.util.Collections;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author yinzsW
@@ -51,194 +55,220 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ArticleServiceImpl implements ArticleService {
-    private final ArticleMapper articleMapper;
-    private final ArticleMtmTagMapper articleMtmTagMapper;
-    private final LikeManager likeManager;
-    private final ArticleManager articleManager;
-    private final CategoryManager categoryManager;
-    private final WebConfigManager webConfigManager;
     private final HttpContext httpContext;
     private final UploadProvider uploadProvider;
+    private final TagMapper tagMapper;
+    private final ArticleMapper articleMapper;
+    private final TagManager tagManager;
+    private final ArticleManager articleManager;
+    private final CategoryManager categoryManager;
+    private final SystemWebManager systemWebManager;
     private final ArticleConverter articleConverter;
 
     @Override
-    public ArticleVO getArticle(Long articleId) {
-        // 查询文章信息
-        ArticlePO articlePO = articleManager.getArticleById(articleId);
-        Optional.ofNullable(articlePO).orElseThrow(() -> new BizException(String.format("id为%d的文章不存在", articleId)));
-
-        // 更新浏览量
-        String userIdentify = JwtManager.getCurrentContextDTO().map(Objects::toString)
-                .or(httpContext::getUserIpAddress).orElse("unknown");
-        articleManager.updateViewsInfo(articleId, userIdentify);
-
-        // 查询上一篇和下一篇文章
-        Long userId = JwtManager.getCurrentContextDTO().map(JwtContextDTO::getUid).orElse(null);
-        ArticlePO prevArticlePO = articleMapper.getPrevOrNextArticle(articleId, userId, true);
-        ArticlePO nextArticlePO = articleMapper.getPrevOrNextArticle(articleId, userId, false);
-
-        ArticleMapsDTO articleMapsDTO = articleManager.getArticleMapsDTO(List.of(articlePO), true);
-        return articleConverter.toArticleVO(articlePO, articleMapsDTO)
-                .setPrevArticle(articleConverter.toArticleOutlineVO(prevArticlePO))
-                .setNextArticle(articleConverter.toArticleOutlineVO(nextArticlePO));
-    }
-
-    @Override
     public ArticleBackgroundVO getBackgroundArticle(Long articleId) {
-        ArticlePO articlePO = articleManager.getById(articleId);
-        Optional.ofNullable(articlePO).orElseThrow(() -> new BizException(String.format("id为%d的文章不存在", articleId)));
-
-        ArticleMapsDTO articleMapsDTO = articleManager.getArticleMapsDTO(List.of(articlePO), false);
-        return articleConverter.toArticleBackgroundVO(articlePO, articleMapsDTO);
-    }
-
-    @Override
-    public List<ArticleSummaryVO> listRelatedArticles(Long articleId) {
-        Long userId = JwtManager.getCurrentContextDTO().map(JwtContextDTO::getUid).orElse(null);
-        List<Long> tagIds = MapQueryUtils.create(ArticleMtmTagPO::getArticleId, List.of(articleId)).getValues(ArticleMtmTagPO::getTagId);
-        if (CollectionUtils.isEmpty(tagIds)) {
-            return Collections.emptyList();
-        }
-        List<Long> articleIds = articleMtmTagMapper.listRelatedArticleIdsByTagIds(articleId, tagIds);
-        if (CollectionUtils.isEmpty(articleIds)) {
-            return Collections.emptyList();
-        }
-        List<ArticlePO> articlePOList = articleMapper.listRelatedArticleByIds(articleIds, userId);
-        return articleConverter.toArticleSummaryVO(articlePOList);
-    }
-
-    @Override
-    public PageVO<ArticleDigestVO> pageArticles(PageReq pageReq, Boolean isOnlyTop) {
-        Long userId = JwtManager.getCurrentContextDTO().map(JwtContextDTO::getUid).orElse(null);
-        Page<ArticlePO> articlePOPage = articleMapper.pageArticles(pageReq.getPager(), userId, isOnlyTop);
-
-        VerifyUtils.checkIPage(articlePOPage);
-
-        List<ArticlePO> articlePOList = articlePOPage.getRecords();
-        ArticleMapsDTO articleMapsDTO = articleManager.getArticleMapsDTO(articlePOList, false);
-        List<ArticleDigestVO> articleDigestVOList = articleConverter.toArticleDigestVO(articlePOList, articleMapsDTO);
-        return new PageVO<>(articleDigestVOList, articlePOPage.getTotal());
+        return articleMapper.getBackgroundArticle(articleId);
     }
 
     @Override
     public PageVO<ArticleDigestBackgroundVO> pageBackgroundArticles(PageReq pageReq, ArticleQueryReq articleQueryReq) {
-        List<Long> articleIds = Optional.ofNullable(articleQueryReq.getTagId())
-                .map(tagId -> MapQueryUtils.create(ArticleMtmTagPO::getTagId, List.of(tagId)).getValues(ArticleMtmTagPO::getArticleId))
-                .orElse(Collections.emptyList());
+        List<ArticleDigestBackgroundVO> backgroundArticles = articleMapper.listBackgroundArticles(pageReq, articleQueryReq);
+        Long count = articleMapper.countBackgroundArticles(articleQueryReq);
 
-        QueryBackgArticleDTO queryBackgArticleDTO = articleConverter.toQueryBackgroundArticleDTO(articleQueryReq, articleIds);
-        Page<ArticlePO> articlePOPage = articleMapper.pageBackgroundArticles(pageReq.getPager(), queryBackgArticleDTO);
-
-        VerifyUtils.checkIPage(articlePOPage);
-
-        //获取文章分类信息, 标签信息, 热度信息
-        List<ArticlePO> articlePOList = articlePOPage.getRecords();
-        ArticleMapsDTO articleMapsDTO = articleManager.getArticleMapsDTO(articlePOList, true);
-        List<ArticleDigestBackgroundVO> articleDigestBackgroundVOList = articleConverter.toArticleDigestBackgroundVO(articlePOList, articleMapsDTO);
-        return new PageVO<>(articleDigestBackgroundVOList, articlePOPage.getTotal());
+        List<Long> articleIds = SimpleQuery.list2List(backgroundArticles, ArticleDigestBackgroundVO::getId);
+        Map<Long, ArticleHeatVO> articleHotIndexMap = articleManager.getArticleHotMap(articleIds);
+        backgroundArticles.forEach(backgroundArticle -> {
+            ArticleHeatVO articleHeatVO = Optional
+                    .ofNullable(articleHotIndexMap.get(backgroundArticle.getId()))
+                    .orElseGet(ArticleHeatVO::new);
+            backgroundArticle.setDayHot(articleHeatVO);
+        });
+        return PageVO.getPageVO(backgroundArticles, count);
     }
 
     @Override
-    public PageVO<ArticlePreviewVO> pagePreviewArticles(PageReq pageReq, Long categoryId) {
-        Page<ArticlePO> articlePOPage = articleManager.pagePreviewArticlesByCategoryId(pageReq.getPager(), categoryId);
+    public ArticleVO getArticle(Long articleId) {
+        // 查询文章信息
+        Optional<JwtTokenDTO> currentContextDTO = JwtManager.getCurrentTokenDTO();
+        Long userId = currentContextDTO.map(JwtTokenDTO::getUid).orElse(null);
+        ArticleVO article = articleMapper.getArticle(articleId, userId);
+        if (Objects.isNull(article)) {
+            return null;
+        }
 
-        VerifyUtils.checkIPage(articlePOPage);
+        // 查询上一篇和下一篇文章
+        ArticlePreviewVO prevArticle = articleMapper.getPrevArticle(articleId, userId);
+        ArticlePreviewVO nextArticle = articleMapper.getNextArticle(articleId, userId);
+        article.setPrevArticle(prevArticle).setNextArticle(nextArticle);
 
-        return getArticlePreviewVOPageVO(articlePOPage);
+        //查询文章热度信息
+        ArticleHeatVO articleHeatVO = Optional
+                .ofNullable(articleManager.getArticleHotMap(List.of(articleId)).get(articleId))
+                .orElseGet(ArticleHeatVO::new);
+        article
+                .setViewsCount(article.getViewsCount() + articleHeatVO.getViewsCount())
+                .setLikesCount(article.getLikesCount() + articleHeatVO.getLikesCount());
+
+        // 更新浏览量
+        String userFlag = httpContext.getUserFlag();
+        articleManager.updateViewsInfo(articleId, userFlag);
+        return article;
     }
 
     @Override
-    public PageVO<ArticlePreviewVO> pagePreviewArticles(PageReq pageReq, List<Long> tagIds) {
-        List<Long> articleIds = MapQueryUtils.create(ArticleMtmTagPO::getTagId, tagIds).getValues(ArticleMtmTagPO::getArticleId);
-        Page<ArticlePO> articlePOPage = articleManager.pagePreviewArticlesByIds(pageReq.getPager(), articleIds);
+    public List<ArticlePreviewVO> listTopArticles() {
+        Long userId = JwtManager.getCurrentTokenDTO().map(JwtTokenDTO::getUid).orElse(null);
+        return articleMapper.listTopArticles(userId);
+    }
 
-        VerifyUtils.checkIPage(articlePOPage);
-
-        return getArticlePreviewVOPageVO(articlePOPage);
+    @Override
+    public PageVO<ArticlePreviewVO> pagePreviewArticles(PageReq pageReq, QueryPreviewArticleDTO queryPreviewArticleDTO) {
+        JwtManager.getCurrentTokenDTO().map(JwtTokenDTO::getUid).ifPresent(queryPreviewArticleDTO::setUserId);
+        List<ArticlePreviewVO> articlePreviewVOList = articleMapper.listArticles(pageReq, queryPreviewArticleDTO);
+        Long count = articleMapper.countArticles(queryPreviewArticleDTO);
+        return PageVO.getPageVO(articlePreviewVOList, count);
     }
 
     @Override
     public PageVO<ArticleArchiveVO> pageArchivesArticles(PageReq pageReq) {
-        Page<ArticlePO> articlePOPage = articleManager.pageArchivesArticles(pageReq.getPager());
-
-        VerifyUtils.checkIPage(articlePOPage);
-
-        List<ArticleArchiveVO> articleArchiveVOList = articleConverter.toArticleArchiveVO(articlePOPage.getRecords());
-        return new PageVO<>(articleArchiveVOList, articlePOPage.getTotal());
+        Page<ArticleArchiveVO> articleArchivePage = articleMapper.pageArchivesArticles(pageReq.getPager());
+        return PageVO.getPageVO(articleArchivePage);
     }
 
     @Override
-    public PageVO<ArticleSearchVO> pageSearchArticles(PageReq pageReq, String keywords) {
-        Long userId = JwtManager.getCurrentContextDTO().map(JwtContextDTO::getUid).orElse(null);
-        Page<ArticlePO> articlePOPage = articleMapper.pagePublicArticleByKeywords(pageReq.getPager(), keywords, userId);
-
-        VerifyUtils.checkIPage(articlePOPage);
-
-        List<ArticleSearchVO> articleSearchVOList = articleConverter.toArticleSearchVO(articlePOPage.getRecords());
-        return new PageVO<>(articleSearchVOList, articlePOPage.getTotal());
+    public List<ArticleSearchVO> searchArticles(String keywords) {
+        Long userId = JwtManager.getCurrentTokenDTO().map(JwtTokenDTO::getUid).orElse(null);
+        return articleMapper.searchArticles(keywords, userId);
     }
 
     @Override
-    public String uploadFileArticleImage(MultipartFile image) {
-        return uploadProvider.uploadFile(FilePathEnum.ARTICLE.getPath(), image);
+    public List<String> exportArticles(List<Long> articleIds) {
+        List<ArticlePO> articlePOList = articleManager.lambdaQuery()
+                .select(ArticlePO::getArticleTitle, ArticlePO::getArticleContent)
+                .in(ArticlePO::getId, articleIds)
+                .list();
+        return articlePOList.parallelStream()
+                .map(articlePO -> {
+                    try (InputStream stream = new ByteArrayInputStream(articlePO.getArticleContent().getBytes(StandardCharsets.UTF_8))) {
+                        String filename = articlePO.getArticleTitle().concat(".md");
+                        return uploadProvider.uploadFile(FilePathEnum.MARKDOWN.getPath(), filename, stream);
+                    } catch (IOException e) {
+                        throw new BizException("导出文章失败");
+                    }
+                }).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean importArticles(MultipartFile file) {
+        Long userId = JwtManager.getCurrentTokenDTO().map(JwtTokenDTO::getUid)
+                .orElseThrow(() -> new PreAuthenticatedCredentialsNotFoundException("用户凭据未找到"));
+
+        String articleTitle = Optional.ofNullable(file.getOriginalFilename())
+                .map(filename -> filename.split("\\.")[0])
+                .orElse(CommonConst.UNKNOWN);
+
+        String articleContent;
+        try {
+            articleContent = new BufferedReader(new InputStreamReader(file.getInputStream()))
+                    .lines().collect(Collectors.joining("\n"));
+        } catch (IOException e) {
+            throw new BizException("导入文章失败");
+        }
+
+        String articleCover = systemWebManager.getWebSiteConfig(WebsiteConfigVO::getDefaultArticleCover);
+
+        ArticlePO articlePO = new ArticlePO()
+                .setUserId(userId)
+                .setArticleTitle(articleTitle)
+                .setArticleContent(articleContent)
+                .setArticleCover(articleCover)
+                .setArticleType(ArticleTypeEnum.REPRINTED)
+                .setArticleStatus(ArticleStatusEnum.DRAFT);
+        return articleManager.save(articlePO);
     }
 
     @Override
     public boolean updateArticleIsLiked(Long articleId, Boolean like) {
-        if (articleManager.count(Wrappers.<ArticlePO>lambdaQuery().eq(ArticlePO::getId, articleId)) == 0) {
-            throw new BizException("未知的文章, 点赞失败");
+        if (articleManager.lambdaQuery().eq(ArticlePO::getId, articleId).count() == 0L) {
+            return false;
         }
-
-        likeManager.likeStrategy(TopicTypeEnum.ARTICLE, articleId, like);
-        return like;
+        return false;
     }
 
     @Override
     public boolean updateArticleIsTop(Long articleId, Boolean isTop) {
-        articleManager.updateById(new ArticlePO().setId(articleId).setIsTop(isTop));
-        return isTop;
+        return articleManager.updateById(new ArticlePO().setId(articleId).setIsTop(isTop));
+    }
+
+    @Override
+    public boolean updateArticleIsDeleted(List<Long> articleIds, Boolean isDeleted) {
+        return articleManager.lambdaUpdate().set(ArticlePO::getIsDeleted, isDeleted).in(ArticlePO::getId, articleIds).update();
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean saveOrUpdateArticle(ArticleReq articleReq) {
-        Long uid = JwtManager.getCurrentContextDTO().map(JwtContextDTO::getUid)
+        Long uid = JwtManager.getCurrentTokenDTO().map(JwtTokenDTO::getUid)
                 .orElseThrow(() -> new PreAuthenticatedCredentialsNotFoundException("用户凭据未找到"));
-
-        if (categoryManager.lambdaQuery().eq(CategoryPO::getId, articleReq.getCategoryId()).count() == 0) {
-            throw new BizException("无效的文章分类id");
-        }
-
-        List<Long> existTagIds = MapQueryUtils.create(TagPO::getId, articleReq.getTagIds()).getValues(TagPO::getId);
-        if (CollectionUtils.isEmpty(existTagIds)) {
-            throw new BizException("无效的文章分类id");
-        }
-
-        //保存文章与标签的映射关系
-        Db.saveBatch(SimpleQuery.list2List(existTagIds, tagId -> new ArticleMtmTagPO(articleReq.getId(), tagId)));
 
         //设置文章默认封面
         if (!StringUtils.hasText(articleReq.getArticleCover())) {
-            String articleCover = webConfigManager.getWebSiteConfig(WebsiteConfigPO::getDefaultArticleCover);
+            String articleCover = systemWebManager.getWebSiteConfig(WebsiteConfigVO::getDefaultArticleCover);
             articleReq.setArticleCover(articleCover);
         }
 
-        //保存或更新文章
+        //保存或更新草稿文章
         ArticlePO articlePO = articleConverter.toArticlePO(articleReq, uid);
-        return articleManager.saveOrUpdate(articlePO);
+        if (ArticleStatusEnum.DRAFT.equals(articleReq.getArticleStatus())) {
+            return articleManager.saveOrUpdate(articlePO);
+        }
+
+        // 参数合法性校验
+        if (Objects.isNull(articleReq.getCategoryName())
+                || articleReq.getCategoryName().length() < 2) {
+            throw new BizException("缺少分类名或分类名不合法");
+        }
+
+        if (CollectionUtils.isEmpty(articleReq.getTagNames())
+                || articleReq.getTagNames().stream().anyMatch(tagName -> tagName.length() < 2)) {
+            throw new BizException("缺少标签名或含有不合法的标签名");
+        }
+
+        if (!ArticleTypeEnum.ORIGINAL.equals(articleReq.getArticleType())
+                && !StringUtils.hasText(articleReq.getOriginalUrl())) {
+            throw new BizException("非原创文章需要注明源地址");
+        }
+
+        // 保存分类
+        CategoryPO categoryPO = categoryManager.lambdaQuery()
+                .eq(CategoryPO::getCategoryName, articleReq.getCategoryName())
+                .oneOpt()
+                .orElseGet(() -> {
+                    CategoryPO category = new CategoryPO().setCategoryName(articleReq.getCategoryName());
+                    categoryManager.save(category);
+                    return category;
+                });
+
+        //保存或更新文章
+        articleManager.saveOrUpdate(articlePO.setCategoryId(categoryPO.getId()));
+
+        //保存标签
+        tagMapper.saveTagNamesIgnoreDuplicateKey(articleReq.getTagNames());
+
+        List<Long> tagIds = tagManager.lambdaQuery()
+                .select(TagPO::getId, TagPO::getTagName)
+                .in(TagPO::getTagName, articleReq.getTagNames())
+                .list()
+                .stream()
+                .map(TagPO::getId)
+                .collect(Collectors.toList());
+        Db.lambdaUpdate(ArticleMtmTagPO.class).eq(ArticleMtmTagPO::getArticleId, articlePO.getId()).remove();
+        return Db.saveBatch(SimpleQuery.list2List(tagIds, tagId -> new ArticleMtmTagPO().setTagId(tagId).setArticleId(articlePO.getId())));
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean deleteArticles(List<Long> articleIds) {
         return articleManager.removeByIds(articleIds);
-    }
-
-    private PageVO<ArticlePreviewVO> getArticlePreviewVOPageVO(Page<ArticlePO> articlePOPage) {
-        List<ArticlePO> articlePOList = articlePOPage.getRecords();
-        ArticleMapsDTO articleMapsDTO = articleManager.getArticleMapsDTO(articlePOList, false);
-        List<ArticlePreviewVO> articlePreviewVOList = articleConverter.toArticlePreviewVO(articlePOList, articleMapsDTO);
-        return new PageVO<>(articlePreviewVOList, articlePOPage.getTotal());
     }
 }
 

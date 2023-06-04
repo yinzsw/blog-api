@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import top.yinzsw.blog.model.request.PageReq;
 import top.yinzsw.blog.model.request.TagReq;
 import top.yinzsw.blog.model.vo.PageVO;
-import top.yinzsw.blog.model.vo.TagBackgroundSearchVO;
+import top.yinzsw.blog.model.vo.TagBackgroundVO;
 import top.yinzsw.blog.model.vo.TagVO;
 import top.yinzsw.blog.service.TagService;
 
@@ -31,27 +31,29 @@ public class TagController {
     private final TagService tagService;
 
     @Operation(summary = "查询标签列表")
-    @GetMapping("name/{name}")
-    public PageVO<TagVO> pageSearchTags(@Valid PageReq pageReq,
-                                        @Parameter(description = "标签名关键词", required = true)
-                                        @PathVariable("name") String name) {
-        return tagService.pageSearchTags(pageReq, name);
+    @GetMapping
+    public PageVO<TagVO> pageTags(@Valid PageReq pageReq) {
+        return tagService.pageTags(pageReq);
+    }
+
+    @Operation(summary = "查询热门标签列表")
+    @GetMapping("hot")
+    public List<TagVO> listHotTags() {
+        return tagService.listHotTags();
     }
 
     @Operation(summary = "查询文章标签(后台)")
-    @GetMapping("background/name/{name}")
-    public PageVO<TagBackgroundSearchVO> pageBackgroundSearchTags(@Valid PageReq pageReq,
-                                                                  @Parameter(description = "标签名关键词", required = true)
-                                                                  @PathVariable("name") String name) {
-        return tagService.pageBackgroundSearchTags(pageReq, name);
+    @GetMapping("background")
+    public PageVO<TagBackgroundVO> pageBackgroundTags(@Valid PageReq pageReq,
+                                                      @Parameter(description = "标签名关键词", required = true)
+                                                      @RequestParam(value = "keywords", required = false) String keywords) {
+        return tagService.pageBackgroundTags(pageReq, keywords);
     }
 
     @Operation(summary = "添加或修改标签")
-    @PutMapping("{repeatable:true|false}")
-    public TagVO saveOrUpdateTag(@Valid @RequestBody TagReq tagReq,
-                                 @Parameter(description = "标签名可重复", required = true)
-                                 @PathVariable("repeatable") Boolean repeatable) {
-        return tagService.saveOrUpdateTag(tagReq, repeatable);
+    @PutMapping
+    public boolean saveOrUpdateTag(@Valid @RequestBody TagReq tagReq) {
+        return tagService.saveOrUpdateTag(tagReq);
     }
 
     @Operation(summary = "删除标签")

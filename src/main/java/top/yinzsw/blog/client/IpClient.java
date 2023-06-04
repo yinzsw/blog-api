@@ -11,8 +11,8 @@ import top.yinzsw.blog.model.dto.IpInfoDTO;
  * @author yinzsW
  * @since 22/12/15
  */
-@FeignClient(url = "https://opendata.baidu.com", name = "ip")
+@FeignClient(url = "https://", name = "ip")
 public interface IpClient {
-    @GetMapping("api.php?resource_id=6006&ie=utf8&oe=utf-8&format=json")
+    @GetMapping("opendata.baidu.com/api.php?resource_id=6006&ie=utf8&oe=utf-8&format=json")
     IpInfoDTO getIpInfo(@RequestParam("query") String query);
 }

@@ -44,6 +44,7 @@
         <mybatis.version>3.5.3.1</mybatis.version>
         <springdoc.version>1.6.13</springdoc.version>
         <jwt.version>0.11.5</jwt.version>
+        <user-agent.version>1.5.4</user-agent.version>
     </properties>
 
     <dependencies>
@@ -104,6 +105,12 @@
             <artifactId>jjwt-jackson</artifactId>
             <version>${jwt.version}</version>
             <scope>compile</scope>
+        </dependency>
+        <!--useragent-->
+        <dependency>
+            <groupId>com.github.ua-parser</groupId>
+            <artifactId>uap-java</artifactId>
+            <version>${user-agent.version}</version>
         </dependency>
 
         <!-- SDK -->
@@ -236,22 +243,6 @@
 
     <build>
         <finalName>app</finalName>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>application*.yaml</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>application.yaml</include>
-                    <include>application-${profile.active}.yaml</include>
-                </includes>
-            </resource>
-        </resources>
         <plugins>
             <!--spring-boot-maven-plugin-->
             <plugin>

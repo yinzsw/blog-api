@@ -2,7 +2,7 @@ package top.yinzsw.blog.core.security.jwt;
 
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import top.yinzsw.blog.enums.TokenTypeEnum;
+import top.yinzsw.blog.enums.AppTypeEnum;
 import top.yinzsw.blog.model.vo.TokenVO;
 
 import java.util.List;
@@ -17,40 +17,39 @@ import java.util.Optional;
 
 public interface JwtManager {
 
+    void loadResource();
+
+    boolean isExcludeResource();
+
+    JwtResourceDTO parseAndGetCurrentResource();
+
     /**
      * 根据用户id创建access token 与 refresh token
      *
-     * @param userId 用户id
-     * @param roles  角色列表
+     * @param userId  用户id
+     * @param roleIds 角色列表
+     * @param appType 应用类型
      * @return token信息
      */
-    TokenVO createTokenVO(Long userId, List<Long> roles);
+    TokenVO createToken(Long userId, List<Long> roleIds, AppTypeEnum appType);
 
     /**
      * 解析 http request token信息
      *
-     * @param isRefresh 是否是{@link TokenTypeEnum#REFRESH}
      * @return token信息
      * @throws AuthenticationException 认证异常
      */
-    JwtContextDTO parseAndGetJwtContext(boolean isRefresh) throws AuthenticationException;
-
-    /**
-     * 添加禁用用户凭证
-     *
-     * @return 是否成功
-     */
-    boolean blockUserToken();
+    JwtTokenDTO parseAndCurrentJwtToken(Boolean isAnonymous) throws AuthenticationException;
 
     /**
      * 得到当前用户认证信息上下文
      *
      * @return 用户认证信息上下文
      */
-    static Optional<JwtContextDTO> getCurrentContextDTO() {
+    static Optional<JwtTokenDTO> getCurrentTokenDTO() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        JwtContextDTO jwtContextDTO = principal instanceof JwtContextDTO ? (JwtContextDTO) principal : null;
-        return Optional.ofNullable(jwtContextDTO);
+        JwtTokenDTO jwtTokenDTO = principal instanceof JwtTokenDTO ? (JwtTokenDTO) principal : null;
+        return Optional.ofNullable(jwtTokenDTO);
     }
 
     /**
@@ -58,9 +57,9 @@ public interface JwtManager {
      *
      * @return 资源id
      */
-    static long getCurrentResourceId() {
+    static Optional<JwtResourceDTO> getCurrentResourceDTO() {
         Object details = SecurityContextHolder.getContext().getAuthentication().getDetails();
-        Long resourceId = details instanceof Long ? (Long) details : null;
-        return Optional.ofNullable(resourceId).orElse(0L);
+        JwtResourceDTO jwtResourceDTO = details instanceof JwtResourceDTO ? (JwtResourceDTO) details : null;
+        return Optional.ofNullable(jwtResourceDTO);
     }
 }

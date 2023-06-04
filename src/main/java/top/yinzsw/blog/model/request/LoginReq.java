@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Length;
+import top.yinzsw.blog.enums.AppTypeEnum;
 
 /**
  * 用户登录
@@ -33,4 +34,7 @@ public class LoginReq {
     @Length(min = 6, max = 64, message = "密码长度至少{min}位!")
     @Schema(title = "密码")
     private String password;
+
+    @Schema(title = "应用类型")
+    private AppTypeEnum appType = AppTypeEnum.FRONT;
 }

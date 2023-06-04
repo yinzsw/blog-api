@@ -2,7 +2,7 @@ package top.yinzsw.blog.service;
 
 import top.yinzsw.blog.model.request.CategoryReq;
 import top.yinzsw.blog.model.request.PageReq;
-import top.yinzsw.blog.model.vo.CategoryDetailVO;
+import top.yinzsw.blog.model.vo.CategoryBackgroundVO;
 import top.yinzsw.blog.model.vo.CategoryVO;
 import top.yinzsw.blog.model.vo.PageVO;
 
@@ -15,32 +15,26 @@ import java.util.List;
  */
 public interface CategoryService {
 
-    /**
-     * 根据关键词查询分类信息
-     *
-     * @param pageReq 分页信息
-     * @param name    分类名关键词
-     * @return 分类列表
-     */
-    PageVO<CategoryVO> pageSearchCategories(PageReq pageReq, String name);
+    PageVO<CategoryVO> pageCategories(PageReq pageReq);
+
+    List<CategoryVO> listHotCategories();
 
     /**
      * 根据关键词获取文章分类
      *
-     * @param pageReq 分页信息
-     * @param name    分类名关键词
+     * @param pageReq  分页信息
+     * @param keywords 分类名关键词
      * @return 分类列表
      */
-    PageVO<CategoryDetailVO> pageDetailCategories(PageReq pageReq, String name);
+    PageVO<CategoryBackgroundVO> pageBackgroundCategories(PageReq pageReq, String keywords);
 
     /**
      * 保存或修改分类信息
      *
      * @param categoryReq 分类信息
-     * @param repeatable  是否可重复
      * @return 是否成功
      */
-    CategoryVO saveOrUpdateCategory(CategoryReq categoryReq, Boolean repeatable);
+    CategoryVO saveOrUpdateCategory(CategoryReq categoryReq);
 
     /**
      * 删除违章分类
@@ -49,4 +43,5 @@ public interface CategoryService {
      * @return 是否成功
      */
     boolean deleteCategories(List<Long> categoryIds);
+
 }

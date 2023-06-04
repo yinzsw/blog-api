@@ -13,8 +13,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum TokenTypeEnum {
-    ACCESS(0, 24 * 3600),
-    REFRESH(1, 3 * 24 * 3600);
+    ACCESS(0, 2 * 3600),
+    REFRESH(1, 8 * 3600);
 
     /**
      * 类型

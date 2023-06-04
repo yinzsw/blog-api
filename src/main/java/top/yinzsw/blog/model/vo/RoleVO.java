@@ -28,12 +28,6 @@ public class RoleVO {
     /**
      * 角色名
      */
-    @Schema(title = "角色名(zh)")
-    private String roleName;
-
-    /**
-     * 角色名(en)
-     */
-    @Schema(title = "角色名(en)")
-    private String roleLabel;
+    @Schema(title = "角色名")
+    private String name;
 }

@@ -7,9 +7,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.util.CollectionUtils;
+import top.yinzsw.blog.constant.CommonConst;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * IP 信息模型
@@ -32,14 +35,6 @@ public class IpInfoDTO {
 
     private List<Detail> data;
 
-    @JsonIgnore
-    public Optional<String> getFirstLocation() {
-        if (CollectionUtils.isEmpty(data)) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(this.data.get(0).location);
-    }
-
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -57,5 +52,27 @@ public class IpInfoDTO {
         private String title;
 
         private String location;
+    }
+
+    @JsonIgnore
+    public Optional<String> getFirstLocation() {
+        if (CollectionUtils.isEmpty(data)) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(this.data.get(0).location);
+    }
+
+    @JsonIgnore
+    public String getProvince() {
+        String location = getFirstLocation().orElse(CommonConst.UNKNOWN);
+
+        String subLocation = location.substring(0, 2);
+        if (List.of("北京", "天津", "上海", "重庆").contains(subLocation)) {
+            return subLocation;
+        }
+
+        Pattern pattern = Pattern.compile("^(?<province>.*?)省");
+        Matcher matcher = pattern.matcher(location);
+        return matcher.find() ? matcher.group("province") : location.split(" ")[0];
     }
 }

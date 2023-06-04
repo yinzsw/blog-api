@@ -6,7 +6,7 @@ spring:
   application:
     name: blog
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:.env.@profile.active@[.properties]
   profiles:
     active: "@profile.active@"
   servlet:
@@ -14,14 +14,17 @@ spring:
       max-file-size: 32MB
       max-request-size: 64MB
   datasource:
+    url: "${DATABASE.URL}?allowMultiQueries=true&rewriteBatchedStatements=true&useAffectedRows=true&serverTimezone=Asia/Shanghai"
+    username: ${DATABASE.USERNAME}
+    password: ${DATABASE.PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
       async-init: true
-      initial-size: 5   #初始化连接池数量
-      min-idle: 5       #最小连接池数量
-      max-active: 20    #最大连接池数量
-      max-wait: 6000    #取连接的超时等待时间(ms)
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 6000
       min-evictable-idle-time-millis: 300000
       validation-query: SELECT 1
       test-while-idle: true
@@ -36,10 +39,16 @@ spring:
         session-stat-max-count: 1000
       stat-view-servlet:
         enabled: true
+        login-username: ${DATABASE.DRUID.USERNAME}
+        login-password: ${DATABASE.DRUID.PASSWORD}
         url-pattern: /druid/*
         reset-enable: false
   redis:
     database: 0
+    host: ${REDIS.HOST}
+    port: ${REDIS.PORT}
+    username: ${REDIS.USERNAME}
+    password: ${REDIS.PASSWORD}
     lettuce.pool:
       enabled: true
       min-idle: 5
@@ -48,28 +57,32 @@ spring:
       max-wait: 3000ms
       time-between-eviction-runs: 1s
   rabbitmq:
+    host: ${MQ.HOST}
+    port: ${MQ.PORT}
+    username: ${MQ.USERNAME}
+    password: ${MQ.PASSWORD}
+    virtual-host: /
     listener:
       simple:
         prefetch: 1
   mail:
-    host: smtp.qq.com
-    port: 465
+    host: ${MAIL.HOST}
+    port: ${MAIL.PORT}
     username: ${MAIL.USERNAME}
     password: ${MAIL.PASSWORD}
+    protocol: ${MAIL.PROTOCOL}
     default-encoding: UTF-8
-    protocol: smtp
     properties:
       auth: true
       mail.smtp.ssl.enable: true
+logging.level:
+  top.yinzsw.blog.mapper: ${LOG.LEVEL}
 feign:
-  httpclient:
-    enabled: true
-  client:
-    config:
-      default:
-        read-timeout: 5000
-        connect-timeout: 5000
-        logger-level: basic
+  httpclient.enabled: true
+  client.config.default:
+    read-timeout: 5000
+    connect-timeout: 5000
+    logger-level: basic
 upload:
   mode: kodo
   bucket: ${UPLOAD.BUCKET}
@@ -77,14 +90,41 @@ upload:
   domain-url: ${UPLOAD.DOMAIN_URL}
   access-key: ${UPLOAD.ACCESS_KEY}
   access-key-secret: ${UPLOAD.ACCESS_KEY_SECRET}
+oauth2:
+  supports:
+    github:
+      client-id: ${GITHUB.CLIENT_ID}
+      client-secret: ${GITHUB.CLIENT_SECRET}
+      redirect-uri: ${GITHUB.REDIRECT_URI}
+      authorize-url: ${GITHUB.AUTHORIZE_URL}
+springdoc:
+  packages-to-scan: top.yinzsw.blog.controller
+  api-docs:
+    enabled: ${SPRINGDOC.ENABLED}
+  swagger-ui:
+    enabled: ${SPRINGDOC.ENABLED}
+    tags-sorter: alpha
+    operations-sorter: method
+openapi:
+  title: "博客API文档"
+  version: "@project.version@"
+  description: "blog-接口文档"
+  contact-name: "yinzsW"
+  contact-url: "https://github.com/yinzsw"
+  contact-email: "yinzsw@qq.com"
 jwt:
   key: ${JWT.KEY}
+  refresh-method: put
   refresh-uri: "/auth"
   exclude-uris:
     - "/druid/**"
     - "/swagger-ui/**"
     - "/v3/api-docs/**"
+    - "/error"
+    - "/login/oauth2/code/*"
+    - "/auth/oauth2/**"
 blog:
-  #  initialization: false
-  initialization: true
-
+  init-resources: ${BLOG.INIT}
+  init-website-config: ${BLOG.INIT}
+  enable-message-queue: false
+  enable-elastic-search: false

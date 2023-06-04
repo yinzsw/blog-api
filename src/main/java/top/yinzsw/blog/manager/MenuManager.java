@@ -2,6 +2,7 @@ package top.yinzsw.blog.manager;
 
 import top.yinzsw.blog.extension.mybatisplus.CommonManager;
 import top.yinzsw.blog.model.po.MenuPO;
+import top.yinzsw.blog.model.vo.MenuVO;
 
 import java.util.List;
 
@@ -14,11 +15,5 @@ import java.util.List;
 
 public interface MenuManager extends CommonManager<MenuPO> {
 
-    /**
-     * 获取可以访问的菜单列表
-     *
-     * @param accessibleMenuIds 可访问菜单id
-     * @return 菜单列表
-     */
-    List<MenuPO> listAccessibleMenus(List<Long> accessibleMenuIds);
+    List<MenuVO> listAccessibleMenusByRoleId(List<Long> roleIds);
 }

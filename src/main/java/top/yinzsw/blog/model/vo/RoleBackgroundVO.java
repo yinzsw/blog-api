@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 用户角色
@@ -28,16 +27,10 @@ public class RoleBackgroundVO {
     private Long id;
 
     /**
-     * 角色名(zh)
+     * 角色名
      */
-    @Schema(title = "角色名(zh)")
-    private String roleName;
-
-    /**
-     * 角色名(en)
-     */
-    @Schema(title = "角色名(en)")
-    private String roleLabel;
+    @Schema(title = "角色名")
+    private String name;
 
     /**
      * 是否禁用
@@ -52,14 +45,8 @@ public class RoleBackgroundVO {
     private LocalDateTime createTime;
 
     /**
-     * 菜单id列表
+     * 更新时间
      */
-    @Schema(title = "菜单id列表", nullable = true)
-    private List<Long> menuIdList;
-
-    /**
-     * 资源id列表
-     */
-    @Schema(title = "资源id列表", nullable = true)
-    private List<Long> resourceIdList;
+    @Schema(title = "更新时间")
+    private LocalDateTime updateTime;
 }

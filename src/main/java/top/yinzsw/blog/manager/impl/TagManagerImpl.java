@@ -1,6 +1,7 @@
 package top.yinzsw.blog.manager.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import top.yinzsw.blog.manager.TagManager;
 import top.yinzsw.blog.mapper.TagMapper;
@@ -13,5 +14,6 @@ import top.yinzsw.blog.model.po.TagPO;
  * @since 23/02/04
  */
 @Service
+@RequiredArgsConstructor
 public class TagManagerImpl extends ServiceImpl<TagMapper, TagPO> implements TagManager {
 }

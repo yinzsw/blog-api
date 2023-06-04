@@ -15,25 +15,32 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum TopicTypeEnum {
 
+    WEBSITE(0, "website"),
+
     /**
      * 文章
      */
     ARTICLE(1, "article"),
 
     /**
-     * 说说
-     */
-    TALK(2, "talk"),
-
-    /**
      * 相册
      */
-    ALBUM(3, "album"),
+    ALBUM(2, "album"),
+
+    /**
+     * 说说
+     */
+    TALK(3, "talk"),
+
+    /**
+     * 留言
+     */
+    MESSAGE(4, "message"),
 
     /**
      * 评论
      */
-    COMMENT(4, "comment");
+    COMMENT(5, "comment");
 
     /**
      * 主题类型名值

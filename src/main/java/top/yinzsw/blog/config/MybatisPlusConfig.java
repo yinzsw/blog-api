@@ -1,12 +1,17 @@
 package top.yinzsw.blog.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.InnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
 
 /**
  * mybatis plus配置
@@ -16,7 +21,14 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @MapperScan("top.yinzsw.blog.mapper")
+@RequiredArgsConstructor
 public class MybatisPlusConfig {
+    private final ObjectMapper objectMapper;
+
+    @PostConstruct
+    public void init() {
+        JacksonTypeHandler.setObjectMapper(objectMapper);
+    }
 
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {

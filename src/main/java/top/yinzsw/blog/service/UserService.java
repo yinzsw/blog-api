@@ -1,9 +1,8 @@
 package top.yinzsw.blog.service;
 
 import org.springframework.web.multipart.MultipartFile;
-import top.yinzsw.blog.model.request.PasswordByEmailReq;
-import top.yinzsw.blog.model.request.PasswordByOldReq;
-import top.yinzsw.blog.model.request.UserInfoReq;
+import top.yinzsw.blog.model.request.*;
+import top.yinzsw.blog.model.vo.*;
 
 import java.util.List;
 
@@ -14,13 +13,15 @@ import java.util.List;
  */
 public interface UserService {
 
-    /**
-     * 更新用户头像
-     *
-     * @param avatar 用户头像文件
-     * @return 头像地址
-     */
-    String updateUserAvatar(MultipartFile avatar);
+    List<UserSearchVO> searchUsers(String keywords);
+
+    PageVO<UserBackgroundVO> pageBackgroundUsers(PageReq pageReq, String keywords);
+
+    PageVO<UserOnlineVO> pageOnlineUsers(PageReq pageReq, String keywords);
+
+    List<UserAreaVO> getUserRegionMap(Boolean isLogin);
+
+    boolean register(UserReq userReq);
 
     /**
      * 更新或绑定用户邮箱
@@ -31,14 +32,16 @@ public interface UserService {
      */
     boolean updateUserEmail(String email, String code);
 
+    boolean updateUserNickname(Long userId, String nickname);
+
     /**
      * 更新用户禁用状态
      *
-     * @param userId     用户id
+     * @param userIds    用户id
      * @param isDisabled 禁用状态
      * @return 更新状态
      */
-    boolean updateUserIsDisable(Long userId, Boolean isDisabled);
+    boolean updateUserIsDisable(List<Long> userIds, Boolean isDisabled);
 
     /**
      * 根据邮箱更新用户密码
@@ -57,6 +60,14 @@ public interface UserService {
     boolean updateUserPassword(PasswordByOldReq password);
 
     /**
+     * 更新用户头像
+     *
+     * @param avatar 用户头像文件
+     * @return 头像地址
+     */
+    String updateUserAvatar(MultipartFile avatar);
+
+    /**
      * 更新用户信息
      *
      * @param userInfoReq 用户信息
@@ -72,4 +83,6 @@ public interface UserService {
      * @return 是否成功
      */
     boolean updateUserRoles(Long userId, List<Long> roleIds);
+
+    boolean offlineUsers(List<Long> userIds);
 }

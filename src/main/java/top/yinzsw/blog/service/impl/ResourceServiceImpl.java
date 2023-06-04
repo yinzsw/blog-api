@@ -1,14 +1,21 @@
 package top.yinzsw.blog.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
+import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.pattern.PathPatternParser;
+import org.springframework.transaction.annotation.Transactional;
+import top.yinzsw.blog.manager.ResourceManager;
 import top.yinzsw.blog.mapper.ResourceMapper;
+import top.yinzsw.blog.model.converter.ResourceConverter;
 import top.yinzsw.blog.model.po.ResourcePO;
+import top.yinzsw.blog.model.po.RoleMtmResourcePO;
+import top.yinzsw.blog.model.request.PageReq;
+import top.yinzsw.blog.model.request.ResourceQueryReq;
+import top.yinzsw.blog.model.vo.PageVO;
+import top.yinzsw.blog.model.vo.ResourceBackgroundVO;
+import top.yinzsw.blog.model.vo.ResourceModuleVO;
 import top.yinzsw.blog.service.ResourceService;
 
 import java.util.List;
@@ -21,28 +28,41 @@ import java.util.List;
 @Service
 @CacheConfig(cacheNames = "resource")
 @RequiredArgsConstructor
-public class ResourceServiceImpl extends ServiceImpl<ResourceMapper, ResourcePO> implements ResourceService {
+public class ResourceServiceImpl implements ResourceService {
+    private final ResourceMapper resourceMapper;
+    private final ResourceManager resourceManager;
+    private final ResourceConverter resourceConverter;
 
-    @Cacheable(key = "#method+' '+#uri")
+    @SuppressWarnings("unchecked")
     @Override
-    public ResourcePO getResourceByUriAndMethod(String uri, String method) {
-        //Uri 合法性校验
-        PathContainer askUriPathContainer = PathContainer.parsePath(uri);
-        if (askUriPathContainer.elements().size() < 2) {
-            return null;
-        }
-
-        String uriPrefix = askUriPathContainer.subPath(0, 2).value();
-        List<ResourcePO> resourcePOList = lambdaQuery()
-                .select(ResourcePO::getId, ResourcePO::getUri, ResourcePO::getIsAnonymous)
-                .eq(ResourcePO::getRequestMethod, method)
-                .likeRight(ResourcePO::getUri, uriPrefix)
+    public List<ResourceModuleVO> listModules() {
+        List<ResourcePO> resourcePOList = resourceManager.lambdaQuery()
+                .select(ResourcePO::getModule, ResourcePO::getModuleName)
+                .groupBy(ResourcePO::getModule, ResourcePO::getModuleName)
+                .orderByAsc(ResourcePO::getModuleName)
                 .list();
+        return resourceConverter.toResourceModuleVO(resourcePOList);
+    }
 
-        return resourcePOList.stream()
-                .filter(resourcePO -> PathPatternParser.defaultInstance.parse(resourcePO.getUri()).matches(askUriPathContainer))
-                .findFirst()
-                .orElse(null);
+    @Override
+    public PageVO<ResourceBackgroundVO> pageBackgroundResources(PageReq pageReq, ResourceQueryReq resourceQueryReq) {
+        List<ResourceBackgroundVO> resources = resourceMapper.listBackgroundResources(pageReq, resourceQueryReq);
+        Long count = resourceMapper.countBackgroundResources(resourceQueryReq);
+        return PageVO.getPageVO(resources, count);
+    }
+
+    @Override
+    public boolean updateResourceIsAnonymous(Long resourceId, Boolean isAnonymous) {
+        return resourceManager.updateById(new ResourcePO().setId(resourceId).setIsAnonymous(isAnonymous));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean updateResourceRoles(Long resourceId, List<Long> roleIds) {
+        Db.lambdaUpdate(RoleMtmResourcePO.class).eq(RoleMtmResourcePO::getResourceId, resourceId).remove();
+        List<RoleMtmResourcePO> roleMtmResourcePOS = SimpleQuery
+                .list2List(roleIds, roleId -> new RoleMtmResourcePO().setRoleId(roleId).setResourceId(resourceId));
+        return Db.saveBatch(roleMtmResourcePOS);
     }
 }
 

@@ -1,10 +1,10 @@
 package top.yinzsw.blog.mapper;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import org.apache.ibatis.annotations.CacheNamespace;
 import org.apache.ibatis.annotations.Param;
 import top.yinzsw.blog.extension.mybatisplus.CommonMapper;
 import top.yinzsw.blog.model.po.FriendLinkPO;
+import top.yinzsw.blog.model.vo.FriendLinkBackgroundVO;
 
 /**
  * @author yinzsW
@@ -12,7 +12,6 @@ import top.yinzsw.blog.model.po.FriendLinkPO;
  * @createDate 2023-01-27 23:08:47
  * @Entity top.yinzsw.blog.model.po.FriendLinkPO
  */
-@CacheNamespace(readWrite = false, blocking = true)
 public interface FriendLinkMapper extends CommonMapper<FriendLinkPO> {
 
     /**
@@ -22,7 +21,7 @@ public interface FriendLinkMapper extends CommonMapper<FriendLinkPO> {
      * @param keywords 关键词
      * @return 友链 分页模型
      */
-    Page<FriendLinkPO> pageSearchFriendLinks(Page<FriendLinkPO> pager, @Param("keywords") String keywords);
+    Page<FriendLinkBackgroundVO> pageSearchFriendLinks(Page<FriendLinkPO> pager, @Param("keywords") String keywords);
 }
 
 

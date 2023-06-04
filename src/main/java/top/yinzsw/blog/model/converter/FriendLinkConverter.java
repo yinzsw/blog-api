@@ -17,9 +17,10 @@ import java.util.List;
  */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface FriendLinkConverter {
-    List<FriendLinkVO> toFriendLinkVO(List<FriendLinkPO> friendLinkPOList);
 
     @Mapping(target = "updateTime", ignore = true)
     @Mapping(target = "createTime", ignore = true)
     FriendLinkPO toFriendLinkPO(FriendLinkReq friendLinkReq);
+
+    List<FriendLinkVO> toFriendLinkVO(List<FriendLinkPO> records);
 }

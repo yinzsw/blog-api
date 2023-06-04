@@ -6,9 +6,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import top.yinzsw.blog.model.request.MenuIconReq;
 import top.yinzsw.blog.model.request.MenuReq;
-import top.yinzsw.blog.model.vo.MenuDataVO;
-import top.yinzsw.blog.model.vo.MenuIconVO;
+import top.yinzsw.blog.model.vo.MenuBackgroundVO;
 import top.yinzsw.blog.model.vo.MenuVO;
 import top.yinzsw.blog.service.MenuService;
 
@@ -29,13 +29,13 @@ import java.util.List;
 public class MenuController {
     private final MenuService menuService;
 
-    @Operation(summary = "菜单列表")
-    @GetMapping
-    public List<MenuDataVO> listMenus() {
-        return menuService.listMenus();
+    @Operation(summary = "菜单列表(后台)")
+    @GetMapping("background")
+    public List<MenuBackgroundVO> listBackgroundMenus() {
+        return menuService.listBackgroundMenus();
     }
 
-    @Operation(summary = "获取可访问的菜单列表")
+    @Operation(summary = "菜单列表(可访问)")
     @GetMapping("accessible")
     public List<MenuVO> listAccessibleMenus() {
         return menuService.listAccessibleMenus();
@@ -63,8 +63,8 @@ public class MenuController {
     @PatchMapping("{menuId:\\d+}/icon")
     public boolean updateMenuIcon(@Parameter(description = "菜单id", required = true)
                                   @PathVariable Long menuId,
-                                  @Valid @RequestBody MenuIconVO menuIconVO) {
-        return menuService.updateMenuIcon(menuId, menuIconVO.getIconPath());
+                                  @Valid @RequestBody MenuIconReq menuIconReq) {
+        return menuService.updateMenuIcon(menuId, menuIconReq.getIconPath());
     }
 
     @Operation(summary = "修改菜单顺序")

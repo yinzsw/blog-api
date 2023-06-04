@@ -8,9 +8,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import top.yinzsw.blog.manager.UserManager;
+import top.yinzsw.blog.mapper.RoleMapper;
 import top.yinzsw.blog.model.converter.UserConverter;
 import top.yinzsw.blog.model.po.UserPO;
-import top.yinzsw.blog.service.RoleService;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,8 +24,8 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService, UserDetailsPasswordService {
+    private final RoleMapper roleMapper;
     private final UserManager userManager;
-    private final RoleService roleService;
     private final UserConverter userConverter;
 
     @Override
@@ -33,12 +33,12 @@ public class UserDetailsServiceImpl implements UserDetailsService, UserDetailsPa
         if (!StringUtils.hasText(username)) {
             throw new UsernameNotFoundException("用户名或密码错误");
         }
-        UserPO userPO = userManager.getUserByNameOrEmail(username);
+        UserPO userPO = userManager.getUserByIdentity(username);
         Optional.ofNullable(userPO).orElseThrow(() -> new UsernameNotFoundException("用户名或密码错误"));
 
         // 用户角色信息
         Long userId = userPO.getId();
-        List<Long> roleIds = roleService.getRoleIdsByUserId(userId);
+        List<Long> roleIds = roleMapper.getRoleIdsByUserId(userId);
         return userConverter.toUserDetailDTO(userPO, roleIds);
     }
 

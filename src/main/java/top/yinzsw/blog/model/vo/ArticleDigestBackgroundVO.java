@@ -84,10 +84,16 @@ public class ArticleDigestBackgroundVO {
     private LocalDateTime createTime;
 
     /**
+     * 更新时间
+     */
+    @Schema(title = "更新时间")
+    private LocalDateTime updateTime;
+
+    /**
      * 点赞量
      */
     @Schema(title = "点赞量")
-    private Long likeCount;
+    private Long likesCount;
 
     /**
      * 浏览量
@@ -95,6 +101,9 @@ public class ArticleDigestBackgroundVO {
     @Schema(title = "浏览量")
     private Long viewsCount;
 
+    /**
+     * 当日热度
+     */
     @Schema(title = "当日热度")
-    private ArticleDayHotVO dayHot;
+    private ArticleHeatVO dayHot;
 }

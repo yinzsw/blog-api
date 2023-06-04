@@ -6,20 +6,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import top.yinzsw.blog.core.security.jwt.JwtContextDTO;
 import top.yinzsw.blog.core.security.jwt.JwtManager;
+import top.yinzsw.blog.core.security.jwt.JwtTokenDTO;
 import top.yinzsw.blog.exception.BizException;
 import top.yinzsw.blog.manager.MenuManager;
 import top.yinzsw.blog.mapper.MenuMapper;
 import top.yinzsw.blog.model.converter.MenuConverter;
-import top.yinzsw.blog.model.dto.GroupMenuDTO;
 import top.yinzsw.blog.model.po.MenuPO;
 import top.yinzsw.blog.model.po.RoleMtmMenuPO;
 import top.yinzsw.blog.model.request.MenuReq;
-import top.yinzsw.blog.model.vo.MenuDataVO;
+import top.yinzsw.blog.model.vo.MenuBackgroundVO;
 import top.yinzsw.blog.model.vo.MenuVO;
 import top.yinzsw.blog.service.MenuService;
-import top.yinzsw.blog.util.MapQueryUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -41,23 +39,21 @@ public class MenuServiceImpl implements MenuService {
     private final MenuConverter menuConverter;
 
     @Override
-    public List<MenuDataVO> listMenus() {
-        List<GroupMenuDTO> groupMenus = menuMapper.listMenus();
-        Map<Long, List<GroupMenuDTO>> menusMap = SimpleQuery.listGroupBy(groupMenus, GroupMenuDTO::getParentId);
-        return menuConverter.toMenuDataVO(menusMap.remove(null), menusMap);
+    public List<MenuBackgroundVO> listBackgroundMenus() {
+        List<MenuBackgroundVO> backgroundMenus = menuMapper.listBackgroundMenus();
+        Map<Long, List<MenuBackgroundVO>> menusMap = SimpleQuery.listGroupBy(backgroundMenus, MenuBackgroundVO::getParentId);
+
+        List<MenuBackgroundVO> menuBackgroundVOList = menusMap.get(null);
+        menuBackgroundVOList.forEach(menuBackgroundVO -> menuBackgroundVO.setChildren(menusMap.get(menuBackgroundVO.getId())));
+        return menuBackgroundVOList;
     }
 
     @Override
     public List<MenuVO> listAccessibleMenus() {
-        List<Long> roleIds = JwtManager.getCurrentContextDTO().map(JwtContextDTO::getRoles)
+        List<Long> roleIds = JwtManager.getCurrentTokenDTO().map(JwtTokenDTO::getRoles)
                 .orElseThrow(() -> new PreAuthenticatedCredentialsNotFoundException("用户凭据未找到"));
 
-        List<Long> menuIds = MapQueryUtils.create(RoleMtmMenuPO::getRoleId, roleIds)
-                .getValues(RoleMtmMenuPO::getMenuId);
-
-        List<MenuPO> menuPOS = menuManager.listAccessibleMenus(menuIds);
-        Map<Long, List<MenuPO>> menusMap = SimpleQuery.listGroupBy(menuPOS, MenuPO::getParentId);
-        return menuConverter.toMenuVO(menusMap.remove(null), menusMap);
+        return menuManager.listAccessibleMenusByRoleId(roleIds);
     }
 
     @Override
@@ -67,8 +63,7 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public boolean updateMenuIsHidden(Long menuId, Boolean isHidden) {
-        menuManager.updateById(new MenuPO().setId(menuId).setIsHidden(isHidden));
-        return isHidden;
+        return menuManager.updateById(new MenuPO().setId(menuId).setIsHidden(isHidden));
     }
 
     @Override
@@ -99,7 +94,8 @@ public class MenuServiceImpl implements MenuService {
             if (Objects.nonNull(menuManager.getById(menuPO.getParentId()).getParentId())) {
                 throw new BizException("仅支持二级菜单,不可再设置当前父菜单项");
             }
-            if (Objects.nonNull(menuPO.getId()) && menuManager.lambdaQuery().eq(MenuPO::getParentId, menuPO.getId()).count() > 0) {
+            if (Objects.nonNull(menuPO.getId())
+                    && menuManager.lambdaQuery().eq(MenuPO::getParentId, menuPO.getId()).count() > 0) {
                 throw new BizException("仅支持二级菜单,不可再设置当前父菜单项");
             }
         }

@@ -8,6 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.yinzsw.blog.model.request.FriendLinkReq;
 import top.yinzsw.blog.model.request.PageReq;
+import top.yinzsw.blog.model.vo.FriendLinkBackgroundVO;
 import top.yinzsw.blog.model.vo.FriendLinkVO;
 import top.yinzsw.blog.model.vo.PageVO;
 import top.yinzsw.blog.service.FriendLinkService;
@@ -30,11 +31,18 @@ public class FriendLinkController {
     private final FriendLinkService friendLinkService;
 
     @Operation(summary = "查看友链列表")
-    @GetMapping("keywords/{keywords}")
-    public PageVO<FriendLinkVO> pageSearchFriendLinks(@Valid PageReq pageReq,
-                                                      @Parameter(description = "友链关键词", required = true)
-                                                      @PathVariable("keywords") String keywords) {
-        return friendLinkService.pageSearchFriendLinks(pageReq, keywords);
+    @GetMapping
+    public PageVO<FriendLinkVO> pageFriendLinks(@Valid PageReq pageReq) {
+        return friendLinkService.pageFriendLinks(pageReq);
+    }
+
+
+    @Operation(summary = "查看友链后台列表")
+    @GetMapping("background")
+    public PageVO<FriendLinkBackgroundVO> pageBackgroundFriendLinks(@Valid PageReq pageReq,
+                                                                    @Parameter(description = "友链关键词", required = true)
+                                                                    @RequestParam("keywords") String keywords) {
+        return friendLinkService.pageBackgroundFriendLinks(pageReq, keywords);
     }
 
     @Operation(summary = "保存或修改友链")

@@ -30,12 +30,6 @@ public class ArticleBackgroundVO {
     private Long id;
 
     /**
-     * 文章分类id
-     */
-    @Schema(title = "文章分类id")
-    private Long categoryId;
-
-    /**
      * 文章分类
      */
     @Schema(title = "文章分类")
@@ -62,8 +56,8 @@ public class ArticleBackgroundVO {
     /**
      * 文章标签
      */
-    @Schema(title = "文章标签")
-    private List<TagVO> tags;
+    @Schema(title = "文章标签名")
+    private List<String> tagNames;
 
     /**
      * 文章类型

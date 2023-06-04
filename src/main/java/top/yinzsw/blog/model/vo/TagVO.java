@@ -30,4 +30,10 @@ public class TagVO {
      */
     @Schema(title = "标签名")
     private String tagName;
+
+    /**
+     * 文章量
+     */
+    @Schema(title = "文章数量")
+    private Long articleCount;
 }

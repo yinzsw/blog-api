@@ -27,14 +27,9 @@ public class RolePO implements Serializable {
     private Long id;
 
     /**
-     * 角色名(zh)
+     * 角色名
      */
-    private String roleName;
-
-    /**
-     * 角色名(en)
-     */
-    private String roleLabel;
+    private String name;
 
     /**
      * 是否禁用  0否 1是

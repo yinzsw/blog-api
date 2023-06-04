@@ -1,15 +1,78 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="top.yinzsw.blog.mapper.CategoryMapper">
-    <cache-ref namespace="top.yinzsw.blog.mapper.CategoryMapper"/>
+    <select id="listCategories" resultType="top.yinzsw.blog.model.vo.CategoryVO">
+        SELECT `c`.`id`, `c`.`category_name`, `a`.`article_count`
+        FROM (SELECT `category_id`, COUNT(`id`) AS `article_count`
+        FROM `article`
+        WHERE `is_deleted` = 0 AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))
+        GROUP BY `category_id`
+        LIMIT #{page.offset},#{page.size}) `a`
+        INNER JOIN `category` `c` ON `c`.`id` = `a`.`category_id`
+    </select>
 
-    <select id="pageSearchCategories" resultType="top.yinzsw.blog.model.po.CategoryPO">
-        SELECT `id`, `category_name`, `create_time`
+    <select id="countCategories" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM (SELECT `category_id`
+        FROM `article`
+        WHERE `is_deleted` = 0 AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))
+        GROUP BY `category_id`) `a`
+    </select>
+
+    <select id="listHotCategoriesLimit10" resultType="top.yinzsw.blog.model.vo.CategoryVO">
+        SELECT `c`.`id`, `c`.`category_name`, `a`.`article_count`
+        FROM (SELECT `category_id`, COUNT(`id`) AS `article_count`
+        FROM `article`
+        WHERE `is_deleted` = 0 AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))
+        GROUP BY `category_id`
+        ORDER BY COUNT(`id`) DESC
+        LIMIT 10) `a`
+        INNER JOIN `category` `c` ON `c`.`id` = `a`.`category_id`
+        ORDER BY `a`.`article_count` DESC, `a`.`category_id` DESC
+    </select>
+
+    <select id="listBackgroundCategories" resultType="top.yinzsw.blog.model.vo.CategoryBackgroundVO">
+        SELECT `c`.`id`, `c`.`category_name`, `c`.`create_time`, `c`.`update_time`, COUNT(`a`.`id`) AS `article_count`
+        FROM (SELECT `id`, `category_name`, `create_time`, `update_time`
         FROM `category`
         <where>
-            <if test="name != null and name != ''">
-                MATCH(`category_name`) AGAINST(#{name} IN BOOLEAN MODE)
+            <if test="keywords != null and keywords.length() > 2">
+                MATCH(`category_name`) AGAINST(#{keywords} IN BOOLEAN MODE)
+            </if>
+            <if test="keywords != null and 2 >= keywords.length()">
+                <bind name="pattern" value="'%' + keywords + '%'"/>
+                AND `category_name` LIKE #{pattern}
             </if>
         </where>
+        LIMIT #{page.offset}, #{page.size}) `c`
+        LEFT JOIN `article` `a` ON `a`.`category_id` = `c`.`id`
+        GROUP BY `c`.`id`
+    </select>
+
+    <select id="countBackgroundCategories" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM `category`
+        <where>
+            <if test="keywords != null and keywords.length() > 2">
+                MATCH(`category_name`) AGAINST(#{keywords} IN BOOLEAN MODE)
+            </if>
+            <if test="keywords != null and 2 >= keywords.length()">
+                <bind name="pattern" value="'%' + keywords + '%'"/>
+                AND `category_name` LIKE #{pattern}
+            </if>
+        </where>
+    </select>
+
+    <select id="listHotCategoriesLimit50" resultType="top.yinzsw.blog.model.vo.StatisticsNameCountVO">
+        SELECT `c`.`category_name` AS `name`,
+               `a`.`article_count` AS `count`
+        FROM (SELECT `category_id`, COUNT(`id`) AS `article_count`
+              FROM `article`
+              WHERE `is_deleted` = 0 AND `article_status` IN (1, 2)
+              GROUP BY `category_id`
+              ORDER BY COUNT(`id`) DESC
+              LIMIT 50) `a`
+                 INNER JOIN `category` `c` ON `c`.`id` = `a`.`category_id`
+        ORDER BY `a`.`article_count` DESC, `a`.`category_id` DESC
     </select>
 </mapper>

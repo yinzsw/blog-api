@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.yinzsw.blog.model.request.CategoryReq;
 import top.yinzsw.blog.model.request.PageReq;
-import top.yinzsw.blog.model.vo.CategoryDetailVO;
+import top.yinzsw.blog.model.vo.CategoryBackgroundVO;
 import top.yinzsw.blog.model.vo.CategoryVO;
 import top.yinzsw.blog.model.vo.PageVO;
 import top.yinzsw.blog.service.CategoryService;
@@ -30,28 +30,30 @@ import java.util.List;
 public class CategoryController {
     private final CategoryService categoryService;
 
-    @Operation(summary = "搜索文章分类")
-    @GetMapping("name/{name}")
-    public PageVO<CategoryVO> pageSearchCategories(@Valid PageReq pageReq,
-                                                   @Parameter(description = "分类名关键词", required = true)
-                                                   @PathVariable("name") String name) {
-        return categoryService.pageSearchCategories(pageReq, name);
+    @Operation(summary = "查询分类列表")
+    @GetMapping
+    public PageVO<CategoryVO> pageCategories(@Valid PageReq pageReq) {
+        return categoryService.pageCategories(pageReq);
     }
 
-    @Operation(summary = "查询分类列表")
-    @GetMapping("detail/name/{name}")
-    public PageVO<CategoryDetailVO> pageDetailCategories(@Valid PageReq pageReq,
-                                                         @Parameter(description = "分类名关键词", required = true)
-                                                         @PathVariable("name") String name) {
-        return categoryService.pageDetailCategories(pageReq, name);
+    @Operation(summary = "查询热门分类列表")
+    @GetMapping("hot")
+    public List<CategoryVO> listHotCategories() {
+        return categoryService.listHotCategories();
+    }
+
+    @Operation(summary = "查询分类列表(后台)")
+    @GetMapping("background")
+    public PageVO<CategoryBackgroundVO> pageBackgroundCategories(@Valid PageReq pageReq,
+                                                                 @Parameter(description = "分类名关键词")
+                                                                 @RequestParam(value = "keywords", required = false) String keywords) {
+        return categoryService.pageBackgroundCategories(pageReq, keywords);
     }
 
     @Operation(summary = "添加或修改分类")
-    @PutMapping("{repeatable:true|false}")
-    public CategoryVO saveOrUpdateCategory(@Valid @RequestBody CategoryReq categoryReq,
-                                           @Parameter(description = "标签名可重复", required = true)
-                                           @PathVariable("repeatable") Boolean repeatable) {
-        return categoryService.saveOrUpdateCategory(categoryReq, repeatable);
+    @PutMapping
+    public CategoryVO saveOrUpdateCategory(@Valid @RequestBody CategoryReq categoryReq) {
+        return categoryService.saveOrUpdateCategory(categoryReq);
     }
 
     @Operation(summary = "删除分类")

@@ -43,8 +43,12 @@ public class SystemErrorController implements ErrorController {
         String uri = (String) servletWebRequest.getAttribute(RequestDispatcher.ERROR_REQUEST_URI, RequestAttributes.SCOPE_REQUEST);
         Integer statusCode = (Integer) servletWebRequest.getAttribute(RequestDispatcher.ERROR_STATUS_CODE, RequestAttributes.SCOPE_REQUEST);
         HttpStatus status = Objects.isNull(statusCode) ? HttpStatus.FORBIDDEN : HttpStatus.valueOf(statusCode);
+        String reason = String.format("%s %s [%s %s]", request.getMethod(), uri, status.value(), status.getReasonPhrase());
 
-        String msg = String.format("%s %s [%s]", request.getMethod(), uri, status);
-        return ResponseVO.fail(ResponseCodeEnum.INVALID_REQUEST, msg);
+        if (HttpStatus.FORBIDDEN.equals(status)) {
+            return ResponseVO.fail(ResponseCodeEnum.FORBIDDEN, "你没有权限访问此资源");
+        }
+
+        return ResponseVO.fail(ResponseCodeEnum.FAIL, reason);
     }
 }

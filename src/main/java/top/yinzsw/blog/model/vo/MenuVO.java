@@ -25,6 +25,9 @@ public class MenuVO {
     @Schema(title = "id")
     private Long id;
 
+    @Schema(title = "父菜单项id")
+    private Long parentId;
+
     /**
      * 菜单名
      */
@@ -43,9 +46,13 @@ public class MenuVO {
     @Schema(title = "svg绘制路径")
     private String iconPath;
 
+    @Schema(title = "是否显示")
+    private Boolean isHidden;
+
     /**
      * 子菜单列表
      */
     @Schema(title = "子菜单列表", nullable = true)
     private List<MenuVO> subMenus;
+
 }

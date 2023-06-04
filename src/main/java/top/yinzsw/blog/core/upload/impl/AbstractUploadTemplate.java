@@ -25,8 +25,12 @@ public abstract class AbstractUploadTemplate implements UploadProvider {
     @Override
     public String uploadFile(String path, MultipartFile file) {
         try (InputStream inputStream = file.getInputStream()) {
-            String fileName = getFileName(file);
-            return uploadFile(path, fileName, inputStream);
+            String filename = getFileName(file);
+            String filePath = UriComponentsBuilder.fromPath(path).path("/".concat(filename)).build().toUriString();
+            if (!getIsExists(filePath)) {
+                upload(filePath, inputStream);
+            }
+            return getFileAccessUrl(filePath);
         } catch (IOException e) {
             log.error("uploadFile :{}", e.getMessage());
             throw new BizException("文件上传失败");
@@ -37,9 +41,7 @@ public abstract class AbstractUploadTemplate implements UploadProvider {
     public String uploadFile(String path, String filename, InputStream inputStream) {
         try (inputStream) {
             String filePath = UriComponentsBuilder.fromPath(path).path("/".concat(filename)).build().toUriString();
-            if (!getIsExists(filePath)) {
-                upload(filePath, inputStream);
-            }
+            upload(filePath, inputStream);
             return getFileAccessUrl(filePath);
         } catch (Exception e) {
             log.error("uploadFile :{}", e.getMessage());

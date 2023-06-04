@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.yinzsw.blog.mapper.LogOperationMapper">
+    <resultMap id="logBackgroundVO" type="top.yinzsw.blog.model.vo.LogBackgroundVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="params" property="params"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result column="data" property="data"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <association property="user" javaType="top.yinzsw.blog.model.vo.UserVO" autoMapping="true">
+            <id column="user_id" property="id"/>
+        </association>
+        <association property="resource" javaType="top.yinzsw.blog.model.vo.ResourceVO" autoMapping="true">
+            <id column="resource_id" property="id"/>
+            <result column="resource_uri" property="uri"/>
+        </association>
+    </resultMap>
+
+    <select id="pageLogs" resultMap="logBackgroundVO">
+        SELECT `lo`.*,
+        `r`.`module`,
+        `r`.`module_name`,
+        `r`.`name`,
+        `r`.`method`,
+        `r`.`uri` AS `resource_uri`,
+        `r`.`is_anonymous`,
+        `u`.`nickname`,
+        `u`.`avatar`,
+        `u`.`website`
+        FROM ( SELECT `id`,
+        `resource_id`,
+        `user_id`,
+        `ip`,
+        `address`,
+        `uri`,
+        `time`,
+        `params`,
+        `data`,
+        `exception`,
+        `is_exception`,
+        `create_time`,
+        `update_time`
+        FROM `log_operation`
+        <where>
+            <if test="query.isException != null">`is_exception` = #{query.isException}</if>
+            <if test="query.startDate != null">AND `create_time` >= #{query.startDate}</if>
+            <if test="query.endDate != null">AND #{query.endDate} >= `create_time`</if>
+        </where>
+        ) `lo`
+        INNER JOIN `resource` `r` ON `r`.`id` = `lo`.`resource_id`
+        <if test="query.module != null and query.module != ''">AND `r`.`module` = #{query.module}</if>
+        <if test="query.method != null">AND `r`.`method` = #{query.method.name}</if>
+        <if test="query.isAnonymous != null">AND `r`.`is_anonymous` = #{query.isAnonymous}</if>
+        LEFT JOIN `user` `u` ON `u`.`id` = `lo`.`user_id`
+        <where>
+            <if test="query.userId != null">`lo`.`user_id` = #{query.userId}</if>
+        </where>
+        ORDER BY `lo`.`create_time` DESC
+    </select>
+</mapper>

@@ -6,20 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 资源表
- *
- * @TableName resource
- */
-@TableName(value = "resource")
+@TableName("resource")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class ResourcePO implements Serializable {
+public class ResourcePO {
     /**
      * 主键
      */
@@ -27,19 +21,34 @@ public class ResourcePO implements Serializable {
     private Long id;
 
     /**
-     * 资源名
+     * 资源模块
      */
-    private String resourceName;
+    private String module;
 
     /**
-     * 权限路径
+     * 模块名
+     */
+    private String moduleName;
+
+    /**
+     * 资源名
+     */
+    private String name;
+
+    /**
+     * 资源描述
+     */
+    private String description;
+
+    /**
+     * 资源路径
      */
     private String uri;
 
     /**
      * 请求方式
      */
-    private String requestMethod;
+    private String method;
 
     /**
      * 是否匿名访问 0否 1是
@@ -61,3 +70,4 @@ public class ResourcePO implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }
+

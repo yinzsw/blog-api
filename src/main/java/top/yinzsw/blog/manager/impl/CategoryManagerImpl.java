@@ -1,6 +1,7 @@
 package top.yinzsw.blog.manager.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import top.yinzsw.blog.manager.CategoryManager;
 import top.yinzsw.blog.mapper.CategoryMapper;
@@ -13,6 +14,7 @@ import top.yinzsw.blog.model.po.CategoryPO;
  * @since 23/01/27
  */
 @Service
+@RequiredArgsConstructor
 public class CategoryManagerImpl extends ServiceImpl<CategoryMapper, CategoryPO> implements CategoryManager {
 
 }

@@ -26,10 +26,16 @@ public class UserInfoVO {
     private Long id;
 
     /**
-     * 邮箱号
+     * 邮箱
      */
-    @Schema(title = "邮箱号")
+    @Schema(title = "邮箱")
     private String email;
+
+    /**
+     * 手机号
+     */
+    @Schema(title = "手机号")
+    private String phone;
 
     /**
      * 用户名
@@ -59,7 +65,7 @@ public class UserInfoVO {
      * 个人网站
      */
     @Schema(title = "个人网站")
-    private String webSite;
+    private String website;
 
     /**
      * token信息

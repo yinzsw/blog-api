@@ -1,95 +1,377 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="top.yinzsw.blog.mapper.ArticleMapper">
-    <cache-ref namespace="top.yinzsw.blog.mapper.ArticleMapper"/>
 
-    <select id="getPrevOrNextArticle" resultType="top.yinzsw.blog.model.po.ArticlePO">
-        SELECT `id`, `article_title`, `article_cover`
-        FROM `article`
-        WHERE (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId})) AND `is_deleted` = 0
-        <if test="isPrev">AND `id` > #{curArticleId}</if>
-        <if test="!isPrev">AND #{curArticleId} > `id`</if>
-        ORDER BY `id`
-        <if test="!isPrev">DESC</if>
-        LIMIT 1;
-    </select>
+    <resultMap id="articleBackgroundVO" type="top.yinzsw.blog.model.vo.ArticleBackgroundVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="tagNames" ofType="java.lang.String">
+            <result column="tag_name"/>
+        </collection>
+    </resultMap>
+    <resultMap id="articleDigestBackgroundVO" type="top.yinzsw.blog.model.vo.ArticleDigestBackgroundVO"
+               autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="tags" ofType="top.yinzsw.blog.model.vo.TagVO" autoMapping="true">
+            <id property="id" column="tag_id"/>
+        </collection>
+    </resultMap>
+    <resultMap id="articlePreviewVO" type="top.yinzsw.blog.model.vo.ArticlePreviewVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <association property="author" javaType="top.yinzsw.blog.model.vo.UserVO" autoMapping="true">
+            <id property="id" column="user_id"/>
+        </association>
+        <collection property="tags" ofType="top.yinzsw.blog.model.vo.TagVO" autoMapping="true"/>
+    </resultMap>
+    <resultMap id="articleVO" type="top.yinzsw.blog.model.vo.ArticleVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <association property="author" javaType="top.yinzsw.blog.model.vo.UserVO" autoMapping="true">
+            <id property="id" column="user_id"/>
+        </association>
+        <collection property="tags" ofType="top.yinzsw.blog.model.vo.TagVO" autoMapping="true">
+            <id property="id" column="tag_id"/>
+        </collection>
+    </resultMap>
 
-    <select id="listRelatedArticleByIds" resultType="top.yinzsw.blog.model.po.ArticlePO">
-        SELECT `id`, `article_title`, `article_cover`, `create_time`
-        FROM `article`
-        WHERE (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId})) AND `is_deleted` = 0
-        <foreach collection="relatedArticleIds" item="articleId" open=" AND `id` IN (" close=")" separator=",">
-            #{articleId}
-        </foreach>
-        <foreach collection="relatedArticleIds" item="articleId" open="ORDER BY FIELD(`id`," close=")" separator=",">
-            #{articleId}
-        </foreach>
-        LIMIT 6;
-    </select>
-
-    <select id="pageArticles" resultType="top.yinzsw.blog.model.po.ArticlePO">
+    <sql id="digestArticle">
         SELECT `id`,
+               `category_id`,
+               `user_id`,
+               `article_title`,
+               SUBSTR(`article_content`, 1, 256) AS `article_content`,
+               `article_cover`,
+               `article_status`,
+               `article_type`,
+               `is_top`,
+               `create_time`,
+               `update_time`
+        FROM `article`
+    </sql>
+
+    <select id="getBackgroundArticle" resultMap="articleBackgroundVO">
+        SELECT `a`.`id`,
+        `c`.`category_name`,
+        `a`.`article_title`,
+        `a`.`article_content`,
+        `a`.`article_cover`,
+        `a`.`article_status`,
+        `a`.`article_type`,
+        `a`.`original_url`,
+        `a`.`is_top`,
+        `a`.`create_time`,
+        `a`.`update_time`,
+        `a`.`views_count`,
+        `a`.`likes_count`,
+        `t`.`tag_name`
+        FROM (SELECT `id`,
         `category_id`,
         `article_title`,
-        SUBSTR(`article_content`, 1, 256) AS `article_content`,
+        `article_content`,
         `article_cover`,
         `article_status`,
         `article_type`,
-        `is_top`,
-        `create_time`
-        FROM `article`
-        WHERE (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))
-        <if test="isOnlyTop">AND `is_top` = TRUE</if>
-        ORDER BY `id` DESC
-    </select>
-
-    <select id="pageBackgroundArticles" resultType="top.yinzsw.blog.model.po.ArticlePO">
-        SELECT `id`,
-        `category_id`,
-        `article_title`,
-        `article_cover`,
-        `article_status`,
-        `article_type`,
+        `original_url`,
         `is_top`,
         `create_time`,
+        `update_time`,
         `views_count`,
         `likes_count`
         FROM `article`
+        WHERE `id` = #{articleId} AND `is_deleted` = 0) `a`
+        LEFT JOIN `category` `c` ON `c`.`id` = `a`.`category_id`
+        LEFT JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+        LEFT JOIN `tag` `t` ON `t`.`id` = `amt`.`tag_id`
+    </select>
+
+    <select id="listBackgroundArticles" resultMap="articleDigestBackgroundVO">
+        SELECT `a`.`id`,
+        `a`.`category_id`,
+        `c`.`category_name`,
+        `a`.`article_title`,
+        `a`.`article_cover`,
+        `a`.`article_status`,
+        `a`.`article_type`,
+        `a`.`is_top`,
+        `a`.`views_count`,
+        `a`.`likes_count`,
+        `a`.`create_time`,
+        `a`.`update_time`,
+        `t`.`id` AS `tag_id`,
+        `t`.`tag_name` AS `tag_name`
+        FROM (SELECT `id`,
+        `category_id`,
+        `article_title`,
+        `article_cover`,
+        `article_status`,
+        `article_type`,
+        `is_top`,
+        `views_count`,
+        `likes_count`,
+        `create_time`,
+        `update_time`
+        FROM `article`
         <where>
-            <if test="query.categoryId != null">`category_id` = #{query.categoryId}</if>
+            <if test="query.categoryId != null">AND `category_id` = #{query.categoryId}</if>
+            <if test="query.tagId != null">
+                AND `id` IN (SELECT `article_id` FROM `article_mtm_tag` WHERE `tag_id` = #{query.tagId})
+            </if>
             <if test="query.articleStatus != null">AND `article_status` = #{query.articleStatus.value}</if>
             <if test="query.articleType != null">AND `article_type` = #{query.articleType.value}</if>
-            <foreach collection="query.articleIds" item="articleId" open="AND `id` IN (" close=")" separator=","
-                     nullable="true">
-                #{articleId}
-            </foreach>
-            <if test="query.title != null and query.title != ''">
+            <if test="query.isDeleted != null">AND `is_deleted` = #{query.isDeleted}</if>
+            <if test="query.title != null and query.title.length() > 2">
                 AND MATCH(`article_title`) AGAINST(#{query.title} IN BOOLEAN MODE)
+            </if>
+            <if test="query.title != null and 2 >= query.title.length()">
+                <bind name="pattern" value="'%' + query.title + '%'"/>
+                AND `article_title` LIKE #{pattern}
+            </if>
+        </where>
+        ORDER BY `is_top` DESC, `id` DESC
+        LIMIT #{page.offset}, #{page.size}) `a`
+        LEFT JOIN `category` `c` ON `c`.`id` = `a`.`category_id`
+        LEFT JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+        LEFT JOIN `tag` `t` ON `t`.`id` = `amt`.`tag_id`
+        ORDER BY `a`.`is_top` DESC, `a`.`id` DESC
+    </select>
+
+    <select id="countBackgroundArticles" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM `article`
+        <where>
+            <if test="query.categoryId != null">AND `category_id` = #{query.categoryId}</if>
+            <if test="query.tagId != null">
+                AND `id` IN (SELECT `article_id` FROM `article_mtm_tag` WHERE `tag_id` = #{query.tagId})
+            </if>
+            <if test="query.articleStatus != null">AND `article_status` = #{query.articleStatus.value}</if>
+            <if test="query.articleType != null">AND `article_type` = #{query.articleType.value}</if>
+            <if test="query.isDeleted != null">AND `is_deleted` = #{query.isDeleted}</if>
+            <if test="query.title != null and query.title.length() > 2">
+                AND MATCH(`article_title`) AGAINST(#{query.title} IN BOOLEAN MODE)
+            </if>
+            <if test="query.title != null and 2 >= query.title.length()">
+                <bind name="pattern" value="'%' + query.title + '%'"/>
+                AND `article_title` LIKE #{pattern}
             </if>
         </where>
     </select>
 
-    <select id="pagePublicArticleByKeywords" resultType="top.yinzsw.blog.model.po.ArticlePO">
-        SELECT `id`,
-        `article_title`,
-        SUBSTR(`article_content`, 1, 256) AS `article_content`,
-        `article_cover`,
-        `article_status`,
-        `create_time`
+    <select id="listTopArticles" resultMap="articlePreviewVO">
+        SELECT `a`.`id`,
+        `a`.`category_id`,
+        `c`.`category_name`,
+        `a`.`user_id`,
+        `u`.`nickname`,
+        `u`.`avatar`,
+        `u`.`website`,
+        `a`.`article_title`,
+        `article_content`,
+        `a`.`article_cover`,
+        `a`.`article_status`,
+        `a`.`article_type`,
+        `a`.`is_top`,
+        `a`.`create_time`,
+        `a`.`update_time`,
+        `t`.`id` AS `tag_id`,
+        `t`.`tag_name`
+        FROM (
+        <include refid="digestArticle"/>
+        WHERE `is_deleted` = 0
+        AND `is_top` = 1
+        AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))
+        ORDER BY (`likes_count` * 2 + `views_count`) DESC
+        LIMIT 5) `a`
+        INNER JOIN `category` `c` ON `c`.`id` = `a`.`category_id`
+        INNER JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+        INNER JOIN `tag` `t` ON `t`.`id` = `amt`.`tag_id`
+        INNER JOIN `user` `u` ON `a`.`user_id` = `u`.`id`
+    </select>
+
+    <select id="getArticle" resultMap="articleVO">
+        SELECT `a`.`id`,
+        `a`.`category_id`,
+        `c`.`category_name`,
+        `a`.`user_id`,
+        `u`.`nickname`,
+        `u`.`avatar`,
+        `u`.`website`,
+        `a`.`article_title`,
+        `a`.`article_content`,
+        `a`.`article_cover`,
+        `a`.`likes_count`,
+        `a`.`views_count`,
+        `a`.`article_status`,
+        `a`.`article_type`,
+        `a`.`original_url`,
+        `a`.`is_top`,
+        `a`.`create_time`,
+        `a`.`update_time`,
+        `t`.`id` AS `tag_id`,
+        `t`.`tag_name`
+        FROM `article` `a`
+        INNER JOIN `category` `c`
+        ON `c`.`id` = `a`.`category_id`
+        AND `a`.`id` = #{articleId}
+        AND `a`.`is_deleted` = 0
+        AND (`a`.`article_status` = 1
+        OR (`a`.`article_status` = 2 AND `a`.`user_id` = #{userId}))
+        INNER JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+        INNER JOIN `tag` `t` ON `t`.`id` = `amt`.`tag_id`
+        INNER JOIN `user` `u` ON `a`.`user_id` = `u`.`id`
+    </select>
+
+    <update id="incrementViewCount">
+        UPDATE `article`
+        SET `views_count` = `views_count` + #{count}
+        WHERE `id` = #{articleId}
+    </update>
+
+    <select id="getPrevArticle" resultMap="articlePreviewVO">
+        SELECT `a`.`id`,
+        `a`.`category_id`,
+        `c`.`category_name`,
+        `a`.`user_id`,
+        `u`.`nickname`,
+        `u`.`avatar`,
+        `u`.`website`,
+        `a`.`article_title`,
+        `article_content`,
+        `a`.`article_cover`,
+        `a`.`article_status`,
+        `a`.`article_type`,
+        `a`.`is_top`,
+        `a`.`create_time`,
+        `a`.`update_time`,
+        `t`.`id` AS `tag_id`,
+        `t`.`tag_name`
+        FROM (
+        <include refid="digestArticle"/>
+        WHERE `id` <![CDATA[ > ]]> #{articleId}
+        AND `is_deleted` = 0
+        AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))
+        ORDER BY `id`
+        LIMIT 1) `a`
+        INNER JOIN `category` `c` ON `c`.`id` = `a`.`category_id`
+        INNER JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+        INNER JOIN `tag` `t` ON `t`.`id` = `amt`.`tag_id`
+        INNER JOIN `user` `u` ON `a`.`user_id` = `u`.`id`
+    </select>
+
+    <select id="getNextArticle" resultMap="articlePreviewVO">
+        SELECT `a`.`id`,
+        `a`.`category_id`,
+        `c`.`category_name`,
+        `a`.`user_id`,
+        `u`.`nickname`,
+        `u`.`avatar`,
+        `u`.`website`,
+        `a`.`article_title`,
+        `article_content`,
+        `a`.`article_cover`,
+        `a`.`article_status`,
+        `a`.`article_type`,
+        `a`.`is_top`,
+        `a`.`create_time`,
+        `a`.`update_time`,
+        `t`.`id` AS `tag_id`,
+        `t`.`tag_name`
+        FROM (
+        <include refid="digestArticle"/>
+        WHERE `id` <![CDATA[ < ]]> #{articleId}
+        AND `is_deleted` = 0
+        AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))
+        ORDER BY `id` DESC
+        LIMIT 1) `a`
+        INNER JOIN `category` `c` ON `c`.`id` = `a`.`category_id`
+        INNER JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+        INNER JOIN `tag` `t` ON `t`.`id` = `amt`.`tag_id`
+        INNER JOIN `user` `u` ON `a`.`user_id` = `u`.`id`
+    </select>
+
+    <select id="listArticles" resultMap="articlePreviewVO">
+        SELECT `a`.`id`,
+        `a`.`category_id`,
+        `c`.`category_name`,
+        `a`.`user_id`,
+        `u`.`nickname`,
+        `u`.`avatar`,
+        `u`.`website`,
+        `a`.`article_title`,
+        `article_content`,
+        `a`.`article_cover`,
+        `a`.`article_status`,
+        `a`.`article_type`,
+        `a`.`is_top`,
+        `a`.`create_time`,
+        `a`.`update_time`,
+        `t`.`id` AS `tag_id`,
+        `t`.`tag_name`
+        FROM (
+        <include refid="digestArticle"/>
+        WHERE `is_deleted` = 0
+        AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{query.userId}))
+        <if test="query.categoryId != null">AND `category_id` = #{query.categoryId}</if>
+        <if test="query.tagId != null">
+            AND `id` IN (SELECT `article_id` FROM `article_mtm_tag` WHERE `tag_id` = #{query.tagId})
+        </if>
+        ORDER BY `id` DESC
+        LIMIT #{page.offset}, #{page.size}) `a`
+        INNER JOIN `category` `c` ON `c`.`id` = `a`.`category_id`
+        INNER JOIN `article_mtm_tag` `amt` ON `amt`.`article_id` = `a`.`id`
+        INNER JOIN `tag` `t` ON `t`.`id` = `amt`.`tag_id`
+        INNER JOIN `user` `u` ON `a`.`user_id` = `u`.`id`
+        ORDER BY `a`.`id` DESC
+    </select>
+
+    <select id="countArticles" resultType="java.lang.Long">
+        SELECT COUNT(*)
         FROM `article`
-        WHERE (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId})) AND `is_deleted` = 0
-        <if test="keywords != null and keywords != ''">
-            AND MATCH(`article_title`, `article_content`) AGAINST(#{keywords} IN BOOLEAN MODE)
+        WHERE `is_deleted` = 0
+        AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{query.userId}))
+        <if test="query.categoryId != null">AND `category_id` = #{query.categoryId}</if>
+        <if test="query.tagId != null">
+            AND `id` IN (SELECT `article_id` FROM `article_mtm_tag` WHERE `tag_id` = #{query.tagId})
         </if>
     </select>
 
-    <select id="listCategoryArticleCount" resultType="top.yinzsw.blog.model.dto.CategoryArticleNumDTO">
-        SELECT `category_id`, COUNT(`id`) AS `article_count`
+    <resultMap id="articleArchiveVO" type="top.yinzsw.blog.model.vo.ArticleArchiveVO">
+        <id column="date" property="date"/>
+        <collection property="articles" ofType="top.yinzsw.blog.model.vo.ArticleArchiveItemVO" autoMapping="true"/>
+
+    </resultMap>
+    <select id="pageArchivesArticles" resultMap="articleArchiveVO">
+        SELECT `id`,
+               `article_title`,
+               SUBSTR(`article_content`, 1, 256)   AS `article_content`,
+               `create_time`,
+               DATE_FORMAT(`create_time`, '%Y-%m') AS `date`
         FROM `article`
-        WHERE (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))
-        <foreach collection="categoryIds" item="categoryId" open="AND `category_id` IN(" close=")" separator=",">
-            #{categoryId}
-        </foreach>
-        GROUP BY `category_id`
+        WHERE `is_deleted` = 0 AND `article_status` = 1
+        ORDER BY `create_time` DESC
+    </select>
+
+    <select id="searchArticles" resultType="top.yinzsw.blog.model.vo.ArticleSearchVO">
+        SELECT `id`,
+        `article_title`,
+        SUBSTR(`article_content`, 1, 256) AS `article_content`,
+        `article_type`,
+        `create_time`
+        FROM `article`
+        WHERE `is_deleted` = 0 AND (`article_status` = 1 OR (`article_status` = 2 AND `user_id` = #{userId}))
+        <if test="keywords != null and keywords.length() > 2">
+            AND MATCH(`article_title`, `article_content`) AGAINST(#{keywords} IN BOOLEAN MODE)
+        </if>
+        <if test="keywords != null and 2 >= keywords.length()">
+            <bind name="pattern" value="'%' + keywords + '%'"/>
+            AND (`article_title` LIKE #{pattern} OR `article_content` LIKE #{pattern})
+        </if>
+        LIMIT 20
+    </select>
+
+    <select id="listArticleCountOfPastYear" resultType="top.yinzsw.blog.model.vo.StatisticsDayCountVO">
+        SELECT DATE(`create_time`) AS `date`,
+               COUNT(*)            AS `count`
+        FROM `article`
+        WHERE `create_time` >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+        GROUP BY `date`
+        ORDER BY `date` DESC
     </select>
 </mapper>

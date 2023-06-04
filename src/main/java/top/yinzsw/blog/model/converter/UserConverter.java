@@ -23,12 +23,19 @@ public interface UserConverter {
 
     UserInfoVO toUserInfoVO(UserDetailsDTO userDetailsDTO, TokenVO token);
 
+
+    @Mapping(target = "github", ignore = true)
     @Mapping(target = "username", ignore = true)
     @Mapping(target = "updateTime", ignore = true)
+    @Mapping(target = "phone", ignore = true)
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "lastLogin", ignore = true)
     @Mapping(target = "isDisabled", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "createTime", ignore = true)
     @Mapping(target = "avatar", ignore = true)
+    @Mapping(target = "accounts", ignore = true)
     UserPO toUserPO(UserInfoReq userInfoReq, Long id);
+
+    UserInfoVO toUserInfoVO(UserPO userPO, TokenVO token);
 }

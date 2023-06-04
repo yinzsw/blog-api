@@ -11,43 +11,44 @@ import org.aspectj.lang.annotation.Pointcut;
 
 public interface PointCutProvider {
     /**
-     * 判断是不是 REST-ful 控制器
-     */
-    @Pointcut("@target(org.springframework.web.bind.annotation.RestController)")
-    default void isRestController() {
-    }
-
-    /**
      * 判断是否是自己定义的 REST-ful控制器
      */
-    @Pointcut("execution(public * top.yinzsw.blog.controller..*(..))) && isRestController()")
+    @Pointcut("execution(public * top.yinzsw.blog.controller..*(..))) && @target(org.springframework.web.bind.annotation.RestController)")
     default void isSelfRestController() {
     }
 
-    /**
-     * 判断方法是否有 <code>@org.springframework.web.bind.annotation.*Mapping</code> 注解
-     */
-    @Pointcut("" +
-            "@annotation(org.springframework.web.bind.annotation.RequestMapping) ||" +
-            "@annotation(org.springframework.web.bind.annotation.GetMapping)     ||" +
-            "@annotation(org.springframework.web.bind.annotation.PostMapping)    ||" +
-            "@annotation(org.springframework.web.bind.annotation.PutMapping)     ||" +
-            "@annotation(org.springframework.web.bind.annotation.DeleteMapping)  ||" +
-            "@annotation(org.springframework.web.bind.annotation.PatchMapping)")
-    default void canMapping() {
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.GetMapping)")
+    default void isGetMapping() {
     }
 
-    /**
-     * 判断是不是自己定义的接口
-     */
-    @Pointcut("isSelfRestController() && canMapping()")
-    default void isSelfApi() {
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.PostMapping)")
+    default void isPostMapping() {
+    }
+
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.PatchMapping)")
+    default void isPatchMapping() {
+    }
+
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.PutMapping)")
+    default void isPutMapping() {
+    }
+
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.DeleteMapping)")
+    default void isDeleteMapping() {
     }
 
     /**
      * 判断接口是不是自己定义的分页接口
      */
-    @Pointcut("isSelfApi() && execution(* *(..,top.yinzsw.blog.model.request.PageReq,..)))")
-    default void isSelfPagingApi() {
+    @Pointcut("isSelfRestController() && isGetMapping() && execution(* *(..,top.yinzsw.blog.model.request.PageReq,..)))")
+    default void isPagingApi() {
+    }
+
+    @Pointcut("isSelfRestController() && isPatchMapping() && execution(public * updateResource*(..)) ")
+    default void isUpdateResourceApi() {
+    }
+
+    @Pointcut("isSelfRestController() &&(isGetMapping() || isPostMapping() || isPatchMapping() || isPutMapping() || isDeleteMapping())")
+    default void isOperationApi() {
     }
 }

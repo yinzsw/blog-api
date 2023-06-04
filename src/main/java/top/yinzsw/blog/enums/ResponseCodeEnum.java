@@ -13,11 +13,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ResponseCodeEnum {
     /**
-     * 无效的请求
-     */
-    INVALID_REQUEST(10000, "无效的请求"),
-
-    /**
      * 成功
      */
     SUCCESS(20000, "成功"),
@@ -25,7 +20,7 @@ public enum ResponseCodeEnum {
     /**
      * 身份未认证
      */
-    AUTHENTICATED_FAIL(31000, "身份未认证"),
+    AUTHENTICATED_FAIL(31000, "身份认证失败"),
 
     /**
      * 身份认证过期
@@ -56,11 +51,6 @@ public enum ResponseCodeEnum {
      * 操作失败
      */
     FAIL(45000, "失败"),
-
-    /**
-     * 数据持久层异常
-     */
-    DAO_ERROR(49000, "数据层异常"),
 
     /**
      * 系统异常

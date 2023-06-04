@@ -11,4 +11,5 @@ import top.yinzsw.blog.model.po.TagPO;
  */
 
 public interface TagManager extends CommonManager<TagPO> {
+
 }

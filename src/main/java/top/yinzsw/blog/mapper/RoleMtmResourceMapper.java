@@ -1,6 +1,5 @@
 package top.yinzsw.blog.mapper;
 
-import org.apache.ibatis.annotations.CacheNamespace;
 import top.yinzsw.blog.extension.mybatisplus.CommonMapper;
 import top.yinzsw.blog.model.po.RoleMtmResourcePO;
 
@@ -10,7 +9,6 @@ import top.yinzsw.blog.model.po.RoleMtmResourcePO;
  * @createDate 2022-12-15 14:49:49
  * @Entity top.yinzsw.blog.model.po.RoleMtmResourcePO
  */
-@CacheNamespace(readWrite = false, blocking = true)
 public interface RoleMtmResourceMapper extends CommonMapper<RoleMtmResourcePO> {
 
 }

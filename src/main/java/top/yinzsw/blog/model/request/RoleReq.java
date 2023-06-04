@@ -7,17 +7,14 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Length;
 
-import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
- * 用户角色模型
+ * desc
  *
  * @author yinzsW
- * @since 23/01/12
+ * @since 23/05/07
  */
 @Data
 @NoArgsConstructor
@@ -29,35 +26,15 @@ public class RoleReq {
     /**
      * 角色id
      */
-    @Min(value = 1, message = "不合法的角色id: ${validatedValue}")
+    @Min(value = 1, message = "不合法的标签id: ${validatedValue}")
     @Schema(title = "角色id")
-    private Long roleId;
+    private Long id;
 
     /**
-     * 角色名(zh)
+     * 角色名
      */
-    @NotBlank(message = "角色名(zh)不能为空")
-    @Length(min = 2, message = "角色名(zh)长度不能小于{min}")
-    @Schema(title = "角色名(zh)")
-    private String roleName;
-
-    /**
-     * 角色名(en)
-     */
-    @NotBlank(message = "角色名(en)不能为空")
-    @Length(min = 4, message = "角色名(en)长度不能小于{min}")
-    @Schema(title = "角色名(en)")
-    private String roleLabel;
-
-    /**
-     * 资源列表
-     */
-    @Schema(title = "资源列表")
-    private List<@Valid @NotNull(message = "资源id不能为null") Long> resourceIds;
-
-    /**
-     * 菜单列表
-     */
-    @Schema(title = "菜单列表")
-    private List<@Valid @NotNull(message = "菜单id不能为null") Long> menuIds;
+    @NotBlank(message = "角色名不能为空")
+    @Length(min = 2, max = 32, message = "角色名长度不能小于{min}, 大于{max}")
+    @Schema(title = "角色名")
+    private String name;
 }

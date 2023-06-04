@@ -5,9 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import top.yinzsw.blog.enums.ArticleStatusEnum;
 
-import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.List;
 
 /**
  * 文章归档
@@ -22,27 +22,9 @@ import java.time.LocalDateTime;
 @Schema(description = "文章归档")
 public class ArticleArchiveVO {
 
-    /**
-     * 文章id
-     */
-    @Schema(title = "文章id")
-    private Long id;
+    @Schema(title = "文章发表年月")
+    private YearMonth date;
 
-    /**
-     * 文章标题
-     */
-    @Schema(title = "文章标题")
-    private String articleTitle;
-
-    /**
-     * 文章状态
-     */
-    @Schema(title = "文章状态")
-    private ArticleStatusEnum articleStatus;
-
-    /**
-     * 文章发表时间
-     */
-    @Schema(title = "文章发表时间")
-    private LocalDateTime createTime;
+    @Schema(title = "文章")
+    private List<ArticleArchiveItemVO> articles;
 }

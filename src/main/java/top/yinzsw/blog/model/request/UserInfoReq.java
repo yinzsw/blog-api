@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
 /**
  * 用户信息
@@ -20,7 +21,6 @@ import javax.validation.constraints.NotBlank;
 @Accessors(chain = true)
 @Schema(description = "用户信息")
 public class UserInfoReq {
-
     /**
      * 用户昵称
      */
@@ -37,6 +37,7 @@ public class UserInfoReq {
     /**
      * 个人网站
      */
+    @Pattern(regexp = "https?://\\S*", message = "个人网站地址不合法", flags = Pattern.Flag.CASE_INSENSITIVE)
     @Schema(title = "个人网站")
-    private String webSite;
+    private String website;
 }

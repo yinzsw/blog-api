@@ -34,7 +34,7 @@ public class CategoryReq {
      * 分类名
      */
     @NotBlank(message = "分类名不能为空")
-    @Length(min = 2, message = "分类名长度不能小于{min}")
+    @Length(min = 2, max = 32, message = "分类名长度不能小于{min}, 大于{max}")
     @Schema(title = "分类名")
     private String categoryName;
 }

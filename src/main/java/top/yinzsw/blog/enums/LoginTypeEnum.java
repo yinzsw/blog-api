@@ -1,6 +1,5 @@
 package top.yinzsw.blog.enums;
 
-import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -17,29 +16,35 @@ public enum LoginTypeEnum {
     /**
      * 默认登录
      */
-    DEFAULT(1, "邮箱登录", ""),
+    DEFAULT(0, null),
+    /**
+     * 邮箱登录
+     */
+    EMAIL(1, null),
+    /**
+     * 手机登录
+     */
+    PHONE(2, null),
     /**
      * QQ登录
      */
-    QQ(2, "QQ登录", "qqLoginStrategyImpl"),
+    QQ(3, "qqOauth2"),
     /**
      * 微博登录
      */
-    WEIBO(3, "微博登录", "weiboLoginStrategyImpl");
+    WEIBO(4, "weiboOauth2"),
+    /**
+     * github登录
+     */
+    GITHUB(5, "githubOauth2");
 
     /**
      * 登录方式
      */
-    @EnumValue
-    private final int type;
+    private final int value;
 
     /**
      * 描述
      */
-    private final String desc;
-
-    /**
-     * 策略
-     */
-    private final String strategy;
+    private final String strategyName;
 }

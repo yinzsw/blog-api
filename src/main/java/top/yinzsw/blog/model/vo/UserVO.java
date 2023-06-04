@@ -41,5 +41,5 @@ public class UserVO {
      * 个人网站
      */
     @Schema(title = "个人网站")
-    private String webSite;
+    private String website;
 }

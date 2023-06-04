@@ -61,11 +61,6 @@ public class CommentPO implements Serializable {
     private String replyCommentIds;
 
     /**
-     * 评论等级
-     */
-    private Integer level;
-
-    /**
      * 是否置顶
      */
     private Boolean isTop;

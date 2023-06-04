@@ -1,20 +1,21 @@
 package top.yinzsw.blog.mapper;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import top.yinzsw.blog.enums.CommentOrderTypeEnum;
 
 import java.util.List;
 
+@Slf4j
 @SpringBootTest
 class CommentMapperTest {
-    private @Autowired CommentMapper commentMapper;
+    @Autowired
+    private CommentMapper commentMapper;
 
     @Test
-    void getReplyCommentsMap() {
-        var commentsMap = commentMapper.getGroupCommentDTO(List.of(725L, 728L), CommentOrderTypeEnum.DATE);
-        System.out.println(commentsMap);
+    void listReplyComments() {
+        var replyVOList = commentMapper.listReplyComments(List.of(725L, 728L));
+        log.info("{}", replyVOList);
     }
 }
-

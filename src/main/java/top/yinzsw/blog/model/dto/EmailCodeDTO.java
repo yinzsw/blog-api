@@ -17,6 +17,11 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class EmailCodeDTO {
     /**
+     * 发送者邮箱
+     */
+    private String from;
+
+    /**
      * 接收者邮箱
      */
     private String email;

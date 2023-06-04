@@ -2,6 +2,7 @@ package top.yinzsw.blog.service;
 
 import top.yinzsw.blog.model.request.FriendLinkReq;
 import top.yinzsw.blog.model.request.PageReq;
+import top.yinzsw.blog.model.vo.FriendLinkBackgroundVO;
 import top.yinzsw.blog.model.vo.FriendLinkVO;
 import top.yinzsw.blog.model.vo.PageVO;
 
@@ -14,6 +15,8 @@ import java.util.List;
  */
 public interface FriendLinkService {
 
+    PageVO<FriendLinkVO> pageFriendLinks(PageReq pageReq);
+
     /**
      * 格局关键词获取友链
      *
@@ -21,7 +24,7 @@ public interface FriendLinkService {
      * @param keywords 关键词
      * @return 友链信息
      */
-    PageVO<FriendLinkVO> pageSearchFriendLinks(PageReq pageReq, String keywords);
+    PageVO<FriendLinkBackgroundVO> pageBackgroundFriendLinks(PageReq pageReq, String keywords);
 
     /**
      * 保存或修改友链地址

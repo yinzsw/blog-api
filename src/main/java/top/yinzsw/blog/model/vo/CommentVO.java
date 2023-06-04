@@ -33,18 +33,6 @@ public class CommentVO {
     private Long userId;
 
     /**
-     * 回复的用户id
-     */
-    @Schema(title = "回复的用户id")
-    private Long replyUserId;
-
-    /**
-     * 评论等级
-     */
-    @Schema(title = "评论等级")
-    private Integer level;
-
-    /**
      * 评论内容
      */
     @Schema(title = "评论内容")
@@ -71,6 +59,18 @@ public class CommentVO {
     /**
      * 创建时间
      */
-    @Schema(title = "评论id")
+    @Schema(title = "发布时间")
     private LocalDateTime createTime;
+
+    /**
+     * 修改时间
+     */
+    @Schema(title = "修改时间")
+    private LocalDateTime updateTime;
+
+    /**
+     * 回复的用户id
+     */
+    @Schema(title = "回复数量")
+    private Long replyCount;
 }

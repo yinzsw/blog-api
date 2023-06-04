@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="top.yinzsw.blog.mapper.RoleMapper">
-    <cache-ref namespace="top.yinzsw.blog.mapper.RoleMapper"/>
 
-    <select id="listSearchRoles" resultType="top.yinzsw.blog.model.po.RolePO">
-        SELECT `id`, `role_name`, `role_label`, `is_disabled`, `create_time`
+    <select id="getRoleIdsByUserId" resultType="java.lang.Long">
+        SELECT `id`
         FROM `role`
-        <where>
-            <if test="keywords != null and keywords != ''">
-                MATCH(`role_name`, `role_label`) AGAINST(#{keywords} IN BOOLEAN MODE)
-            </if>
-        </where>
+        WHERE `is_disabled` = FALSE AND `id` IN (SELECT `role_id` FROM `user_mtm_role` WHERE `user_id` = #{userId})
     </select>
+
 </mapper>

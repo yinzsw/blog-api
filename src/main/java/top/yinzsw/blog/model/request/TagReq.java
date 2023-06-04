@@ -34,7 +34,7 @@ public class TagReq {
      * 标签名
      */
     @NotBlank(message = "标签名不能为空")
-    @Length(min = 2, message = "标签名长度不能小于{min}")
+    @Length(min = 2, max = 32, message = "标签名长度不能小于{min}, 大于{max}")
     @Schema(title = "标签名")
     private String tagName;
 }

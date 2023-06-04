@@ -33,16 +33,14 @@ import java.util.Objects;
 @ConditionalOnProperty(prefix = "upload", name = "mode", havingValue = "kodo")
 public class KodoUpload extends AbstractUploadTemplate {
     private final UploadConfig uploadConfig;
-
-    private String uploadToken;
+    private Auth auth;
     private UploadManager uploadManager;
     private BucketManager bucketManager;
 
     @PostConstruct
     @Override
     public void init() {
-        Auth auth = Auth.create(uploadConfig.getAccessKey(), uploadConfig.getAccessKeySecret());
-        uploadToken = auth.uploadToken(uploadConfig.getBucket());
+        auth = Auth.create(uploadConfig.getAccessKey(), uploadConfig.getAccessKeySecret());
 
         Configuration configuration = new Configuration(Region.huanan());
         configuration.resumableUploadAPIVersion = Configuration.ResumableUploadAPIVersion.V2;
@@ -74,6 +72,6 @@ public class KodoUpload extends AbstractUploadTemplate {
 
     @Override
     public void upload(String filePath, InputStream inputStream) throws IOException {
-        uploadManager.put(inputStream, filePath, uploadToken, null, null);
+        uploadManager.put(inputStream, filePath, auth.uploadToken(uploadConfig.getBucket()), null, null);
     }
 }

@@ -86,7 +86,6 @@ public class ArticlePO implements Serializable {
     /**
      * 是否删除  0否 1是
      */
-    @TableLogic
     private Boolean isDeleted;
 
     /**

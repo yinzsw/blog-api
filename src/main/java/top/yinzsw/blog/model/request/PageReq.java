@@ -10,9 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springdoc.api.annotations.ParameterObject;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-
 /**
  * 分页模型
  *
@@ -29,7 +26,6 @@ public class PageReq {
     /**
      * 页码
      */
-    @Min(value = 1, message = "页码不能小于 {value}")
     @Schema(defaultValue = "1")
     @Parameter(description = "页码")
     private Long page;
@@ -37,14 +33,17 @@ public class PageReq {
     /**
      * 条数
      */
-    @Min(value = 1, message = "条数不能少于 {min}")
-    @Max(value = 30, message = "条数不能多于 {max}")
-    @Schema(defaultValue = "10")
+    @Schema(defaultValue = "10", maximum = "30")
     @Parameter(description = "条数")
     private Long size;
 
     @JsonIgnore
     public <T> Page<T> getPager() {
         return new Page<>(page, size);
+    }
+
+    @JsonIgnore
+    public Long getOffset() {
+        return (page - 1) * size;
     }
 }

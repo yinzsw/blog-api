@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import top.yinzsw.blog.core.security.oauth.impl.GithubOauth2;
 import top.yinzsw.blog.model.request.LoginReq;
 import top.yinzsw.blog.model.vo.TokenVO;
 import top.yinzsw.blog.model.vo.UserInfoVO;
@@ -27,11 +28,18 @@ import javax.validation.constraints.Email;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final GithubOauth2 githubOauth2;
 
     @Operation(summary = "用户登录")
     @PostMapping
     public UserInfoVO login(@Valid @RequestBody LoginReq loginReq) {
-        return authService.login(loginReq.getUsername(), loginReq.getPassword());
+        return authService.login(loginReq);
+    }
+
+    @Operation(summary = "用户登录")
+    @PostMapping("github")
+    public UserInfoVO loginByGithub(String code) {
+        return githubOauth2.authorize(code);
     }
 
     @Operation(summary = "刷新凭据")
@@ -53,5 +61,4 @@ public class AuthController {
                                  @PathVariable("email") String email) {
         return authService.sendEmailCode(email);
     }
-    //TODO *实现三方登录
 }

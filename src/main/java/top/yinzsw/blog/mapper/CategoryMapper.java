@@ -1,10 +1,14 @@
 package top.yinzsw.blog.mapper;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import org.apache.ibatis.annotations.CacheNamespace;
 import org.apache.ibatis.annotations.Param;
 import top.yinzsw.blog.extension.mybatisplus.CommonMapper;
 import top.yinzsw.blog.model.po.CategoryPO;
+import top.yinzsw.blog.model.request.PageReq;
+import top.yinzsw.blog.model.vo.CategoryBackgroundVO;
+import top.yinzsw.blog.model.vo.CategoryVO;
+import top.yinzsw.blog.model.vo.StatisticsNameCountVO;
+
+import java.util.List;
 
 /**
  * @author yinzsW
@@ -13,15 +17,17 @@ import top.yinzsw.blog.model.po.CategoryPO;
  * @Entity top.yinzsw.blog.model.po.CategoryPO
  */
 
-@CacheNamespace(readWrite = false, blocking = true)
 public interface CategoryMapper extends CommonMapper<CategoryPO> {
 
-    /**
-     * 分页查询分类名
-     *
-     * @param pager 分页器
-     * @param name  分类名关健词
-     * @return 分类分页
-     */
-    Page<CategoryPO> pageSearchCategories(Page<CategoryPO> pager, @Param("name") String name);
+    List<CategoryVO> listCategories(@Param("page") PageReq pageReq, @Param("userId") Long userId);
+
+    Long countCategories(Long userId);
+
+    List<CategoryVO> listHotCategoriesLimit10(@Param("userId") Long userId);
+
+    List<CategoryBackgroundVO> listBackgroundCategories(@Param("page") PageReq pageReq, @Param("keywords") String keywords);
+
+    Long countBackgroundCategories(@Param("keywords") String keywords);
+
+    List<StatisticsNameCountVO> listHotCategoriesLimit50();
 }

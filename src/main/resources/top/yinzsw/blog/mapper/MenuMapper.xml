@@ -1,31 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="top.yinzsw.blog.mapper.MenuMapper">
-    <cache-ref namespace="top.yinzsw.blog.mapper.MenuMapper"/>
 
-    <resultMap id="groupMenuDTO" type="top.yinzsw.blog.model.dto.GroupMenuDTO" autoMapping="true">
-        <id property="menuId" column="menu_id"/>
-        <collection property="roles" ofType="top.yinzsw.blog.model.po.RolePO" autoMapping="true"
-                    notNullColumn="role_id">
-            <id property="id" column="role_id"/>
+    <resultMap id="menuBackgroundVO" type="top.yinzsw.blog.model.vo.MenuBackgroundVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="roles" ofType="top.yinzsw.blog.model.vo.RoleVO" autoMapping="true">
+            <id column="role_id" property="id"/>
+            <id column="role_name" property="name"/>
         </collection>
     </resultMap>
 
-    <select id="listMenus" resultMap="groupMenuDTO">
-        SELECT `m`.`id` AS `menu_id`,
+    <select id="listBackgroundMenus" resultMap="menuBackgroundVO">
+        SELECT `m`.`id`,
                `m`.`parent_id`,
                `m`.`name`,
                `m`.`title`,
                `m`.`icon_path`,
                `m`.`is_hidden`,
                `m`.`create_time`,
-               `r`.`id` AS `role_id`,
-               `r`.`role_name`,
-               `r`.`role_label`
+               `m`.`update_time`,
+               `r`.`id`   AS `role_id`,
+               `r`.`name` AS `role_name`
         FROM `menu` `m`
-                 LEFT JOIN `role_mtm_menu` `rmm` ON `m`.`id` = `rmm`.`menu_id`
-                 LEFT JOIN `role` `r` ON `rmm`.`role_id` = `r`.`id`
+                 INNER JOIN `role_mtm_menu` `rmm` ON `m`.`id` = `rmm`.`menu_id`
+                 INNER JOIN `role` `r` ON `rmm`.`role_id` = `r`.`id`
         ORDER BY `order_num`
     </select>
 
+    <select id="listAccessibleMenus" resultType="top.yinzsw.blog.model.vo.MenuVO">
+        SELECT DISTINCT `m`.`id`,
+        `m`.`parent_id`,
+        `m`.`name`,
+        `m`.`title`,
+        `m`.`icon_path`,
+        `m`.`is_hidden`,
+        `m`.`order_num`
+        FROM `menu` `m`
+        INNER JOIN `role_mtm_menu` `rmm` ON `m`.`id` = `rmm`.`menu_id` AND `rmm`.`role_id` IN
+        <foreach collection="roleIds" item="roleId" open="(" close=")" separator=",">#{roleId}</foreach>
+        INNER JOIN `role` `r` ON `rmm`.`role_id` = `r`.`id`
+        ORDER BY `m`.`order_num`
+    </select>
 </mapper>

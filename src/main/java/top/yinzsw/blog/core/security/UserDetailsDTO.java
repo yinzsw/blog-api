@@ -45,6 +45,11 @@ public class UserDetailsDTO implements UserDetails {
     private String email;
 
     /**
+     * 用户手机号
+     */
+    private String phone;
+
+    /**
      * 用户昵称
      */
     private String nickname;
@@ -67,7 +72,7 @@ public class UserDetailsDTO implements UserDetails {
     /**
      * 用户个人网站
      */
-    private String webSite;
+    private String website;
 
     /**
      * 用户角色

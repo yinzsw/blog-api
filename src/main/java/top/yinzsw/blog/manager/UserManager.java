@@ -1,10 +1,12 @@
 package top.yinzsw.blog.manager;
 
+import top.yinzsw.blog.enums.TokenTypeEnum;
 import top.yinzsw.blog.exception.BizException;
 import top.yinzsw.blog.extension.mybatisplus.CommonManager;
 import top.yinzsw.blog.model.po.UserPO;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * 用户通用业务处理层
@@ -14,19 +16,8 @@ import java.time.Duration;
  */
 
 public interface UserManager extends CommonManager<UserPO> {
-
-    /**
-     * 邮箱验证码过期时间(分钟)
-     */
     Duration USER_EMAIL_CODE_EXPIRE_TIME = Duration.ofMinutes(15);
-
-    /**
-     * 保存邮箱验证码
-     *
-     * @param email 邮箱
-     * @param code  验证码
-     */
-    void saveEmailVerificationCode(String email, String code);
+    Duration USER_ONLINE_DIFF_TIME = Duration.ofMinutes(15);
 
     /**
      * 校验邮箱验证码
@@ -36,23 +27,28 @@ public interface UserManager extends CommonManager<UserPO> {
      */
     void checkEmailVerificationCode(String email, String code) throws BizException;
 
-    /**
-     * 发送邮箱验证码
-     *
-     * @param email 邮箱
-     * @return 验证码
-     */
-    String sendEmailCode(String email);
+    void sendEmailCode(String email);
+
+    void blockToken();
+
+    List<Long> getOnlineUserIds();
+
+    void saveOnlineUser(Long uid);
+
+    void expireUserToken(List<Long> userId, TokenTypeEnum... types);
+
+    void weakUserToken(List<Long> userId);
+
 
 /////////////////////////////////////////////////////MYSQL//////////////////////////////////////////////////////////////
 
     /**
-     * 格局用户名或邮箱查询用户
+     * 根据用标志查询用户
      *
      * @param identity 用户身份标识字符串
      * @return 用户
      */
-    UserPO getUserByNameOrEmail(String identity);
+    UserPO getUserByIdentity(String identity);
 
     /**
      * 根据用户名或邮箱修改密码
@@ -66,9 +62,7 @@ public interface UserManager extends CommonManager<UserPO> {
     /**
      * 保存用户登录历史
      *
-     * @param userId    用户id
-     * @param ipAddress ip地址
-     * @param userAgent 用户代理字符串
+     * @param userId 用户id
      */
-    void saveUserLoginHistory(Long userId, String ipAddress, String userAgent);
+    void saveUserLoginHistory(Long userId);
 }

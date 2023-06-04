@@ -1,10 +1,14 @@
 package top.yinzsw.blog.mapper;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import org.apache.ibatis.annotations.CacheNamespace;
 import org.apache.ibatis.annotations.Param;
 import top.yinzsw.blog.extension.mybatisplus.CommonMapper;
 import top.yinzsw.blog.model.po.TagPO;
+import top.yinzsw.blog.model.request.PageReq;
+import top.yinzsw.blog.model.vo.StatisticsNameCountVO;
+import top.yinzsw.blog.model.vo.TagBackgroundVO;
+import top.yinzsw.blog.model.vo.TagVO;
+
+import java.util.List;
 
 /**
  * @author yinzsW
@@ -12,10 +16,20 @@ import top.yinzsw.blog.model.po.TagPO;
  * @createDate 2023-01-12 22:11:32
  * @Entity top.yinzsw.blog.model.po.TagPO
  */
-@CacheNamespace(readWrite = false, blocking = true)
 public interface TagMapper extends CommonMapper<TagPO> {
+    List<TagVO> listTags(@Param("page") PageReq pageReq, @Param("userId") Long userId);
 
-    Page<TagPO> pageSearchTags(Page<TagPO> pager, @Param("name") String name);
+    Long countTags(@Param("userId") Long userId);
+
+    List<TagVO> listHotTagsLimit10(@Param("userId") Long userId);
+
+    List<TagBackgroundVO> listBackgroundTags(@Param("page") PageReq pageReq, @Param("keywords") String keywords);
+
+    Long countBackgroundTags(@Param("keywords") String keywords);
+
+    boolean saveTagNamesIgnoreDuplicateKey(@Param("tags") List<String> tags);
+
+    List<StatisticsNameCountVO> listHotPercentTagsLimit50();
 }
 
 

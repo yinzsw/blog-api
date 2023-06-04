@@ -1,25 +1,22 @@
 package top.yinzsw.blog.service.impl;
 
 import com.baomidou.mybatisplus.extension.toolkit.Db;
-import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.yinzsw.blog.exception.BizException;
+import top.yinzsw.blog.manager.MenuManager;
 import top.yinzsw.blog.manager.RoleManager;
-import top.yinzsw.blog.mapper.RoleMapper;
+import top.yinzsw.blog.mapper.ResourceMapper;
 import top.yinzsw.blog.model.converter.RoleConverter;
-import top.yinzsw.blog.model.dto.RoleMapsDTO;
 import top.yinzsw.blog.model.po.RoleMtmMenuPO;
 import top.yinzsw.blog.model.po.RoleMtmResourcePO;
 import top.yinzsw.blog.model.po.RolePO;
 import top.yinzsw.blog.model.po.UserMtmRolePO;
 import top.yinzsw.blog.model.request.RoleReq;
-import top.yinzsw.blog.model.vo.RoleBackgroundVO;
-import top.yinzsw.blog.model.vo.RoleVO;
+import top.yinzsw.blog.model.vo.*;
 import top.yinzsw.blog.service.RoleService;
-import top.yinzsw.blog.util.MapQueryUtils;
 
 import java.util.List;
 
@@ -32,67 +29,43 @@ import java.util.List;
 @RequiredArgsConstructor
 @CacheConfig(cacheNames = "role")
 public class RoleServiceImpl implements RoleService {
-    private final RoleMapper roleMapper;
+    private final ResourceMapper resourceMapper;
     private final RoleManager roleManager;
+    private final MenuManager menuManager;
     private final RoleConverter roleConverter;
 
     @Override
-    public List<Long> getRoleIdsByUserId(Long userId) {
-        List<Long> roleIds = MapQueryUtils.create(UserMtmRolePO::getUserId, List.of(userId))
-                .getValues(UserMtmRolePO::getRoleId);
-        return roleManager.getEnabledRoleNamesByIds(roleIds);
-    }
-
-    @Override
-    public List<Long> getRoleIdsByResourceId(Long resourceId) {
-        List<Long> roleIds = MapQueryUtils.create(RoleMtmResourcePO::getResourceId, List.of(resourceId))
-                .getValues(RoleMtmResourcePO::getRoleId);
-        return roleManager.getEnabledRoleNamesByIds(roleIds);
-    }
-
-    @Override
-    public List<RoleVO> listSearchRoleVO(String keywords) {
-        List<RolePO> roles = roleMapper.listSearchRoles(keywords);
+    public List<RoleVO> listRoles() {
+        List<RolePO> roles = roleManager.lambdaQuery()
+                .select(RolePO::getId, RolePO::getName)
+                .list();
         return roleConverter.toRoleDigestVO(roles);
     }
 
     @Override
-    public List<RoleBackgroundVO> listBackgroundRoles(String keywords) {
-        List<RolePO> roles = roleMapper.listSearchRoles(keywords);
+    public List<RoleBackgroundVO> listBackgroundRoles() {
+        List<RolePO> roles = roleManager.lambdaQuery()
+                .select(RolePO::getId, RolePO::getName, RolePO::getIsDisabled, RolePO::getCreateTime, RolePO::getUpdateTime)
+                .list();
+        return roleConverter.toRoleBackgroundVO(roles);
+    }
 
-        RoleMapsDTO roleMapsDTO = roleManager.getRoleMapsDTO(SimpleQuery.list2List(roles, RolePO::getId));
-        return roleConverter.toRoleBackgroundVO(roles, roleMapsDTO);
+    @Override
+    public RoleAuthInfoVO getAuthResourceInfo(Long roleId) {
+        List<MenuVO> menuVOList = menuManager.listAccessibleMenusByRoleId(List.of(roleId));
+        List<ResourceVO> resourceVOList = resourceMapper.listAccessibleResourcesByRoleId(List.of(roleId));
+        return new RoleAuthInfoVO().setMenus(menuVOList).setResources(resourceVOList);
     }
 
     @Override
     public boolean updateRoleIsDisabled(Long roleId, Boolean isDisabled) {
-        return roleManager.lambdaUpdate().set(RolePO::getIsDisabled, isDisabled).eq(RolePO::getId, roleId).update();
+        return roleManager.updateById(new RolePO().setId(roleId).setIsDisabled(isDisabled));
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean saveOrUpdateRole(RoleReq roleReq) {
-        Long existCount = roleManager.lambdaQuery()
-                .eq(RolePO::getRoleName, roleReq.getRoleName()).or()
-                .eq(RolePO::getRoleLabel, roleReq.getRoleLabel())
-                .count();
-        if (existCount > 0) {
-            throw new BizException(String.format("角色名 %s/%s 已经存在, 请更换", roleReq.getRoleName(), roleReq.getRoleLabel()));
-        }
-
-        RolePO rolePO = new RolePO()
-                .setId(roleReq.getRoleId())
-                .setRoleName(roleReq.getRoleName())
-                .setRoleLabel(roleReq.getRoleLabel());
-        roleManager.saveOrUpdate(rolePO);
-
-        //建立角色与资源和菜单的映射关系
-        Long roleId = rolePO.getId();
-        Db.lambdaUpdate(RoleMtmMenuPO.class).eq(RoleMtmMenuPO::getRoleId, roleId).remove();
-        Db.lambdaUpdate(RoleMtmResourcePO.class).eq(RoleMtmResourcePO::getRoleId, roleId).remove();
-        Db.saveBatch(SimpleQuery.list2List(roleReq.getMenuIds(), menuId -> new RoleMtmMenuPO(roleId, menuId)));
-        Db.saveBatch(SimpleQuery.list2List(roleReq.getResourceIds(), resourceId -> new RoleMtmResourcePO(roleId, resourceId)));
-        return true;
+        RolePO rolePO = roleConverter.toRolePO(roleReq);
+        return roleManager.saveOrUpdate(rolePO);
     }
 
     @Transactional(rollbackFor = Exception.class)

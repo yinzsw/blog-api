@@ -1,55 +1,140 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="top.yinzsw.blog.mapper.CommentMapper">
-
-    <cache-ref namespace="top.yinzsw.blog.mapper.CommentMapper"/>
-
-    <resultMap id="groupCommentDTO" type="top.yinzsw.blog.model.dto.GroupCommentDTO">
-        <id property="mainCommentId" column="main_comment_id"/>
-        <result property="moreCommentCount" column="comment_count"/>
-        <collection property="comments" ofType="top.yinzsw.blog.model.po.CommentPO" autoMapping="true"/>
+    <resultMap id="commentDigestVO" type="top.yinzsw.blog.model.vo.CommentDigestVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <association property="user" javaType="top.yinzsw.blog.model.vo.UserVO" autoMapping="true">
+            <id column="user_id" property="id"/>
+        </association>
     </resultMap>
-    <select id="getGroupCommentDTO" resultMap="groupCommentDTO">
+    <resultMap id="commentBackgroundVO" type="top.yinzsw.blog.model.vo.CommentBackgroundVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <association property="user" javaType="top.yinzsw.blog.model.vo.UserVO" autoMapping="true">
+            <id column="user_id" property="id"/>
+        </association>
+    </resultMap>
+
+    <select id="listHotComment" resultMap="commentDigestVO">
+        SELECT `c`.`id`,
+               `c`.`comment_content`,
+               `c`.`create_time`,
+               `u`.`id` AS `user_id`,
+               `u`.`avatar`,
+               `u`.`nickname`,
+               `u`.`website`
+        FROM (SELECT `id`,
+                     `user_id`,
+                     `comment_content`,
+                     `create_time`
+              FROM `comment`
+              ORDER BY `liked_count` DESC
+              LIMIT 10) `c`
+                 INNER JOIN `user` `u` ON `u`.`id` = `c`.`user_id`
+    </select>
+
+    <select id="listTopicComments" resultType="top.yinzsw.blog.model.vo.CommentVO">
         SELECT `id`,
         `user_id`,
         `comment_content`,
         `liked_count`,
-        `reply_user_id`,
-        `level`,
         `is_top`,
         `is_modified`,
         `create_time`,
-        `id` AS `main_comment_id`,
+        `update_time`,
         (SELECT COUNT(*)
         FROM `comment`
         WHERE `reply_comment_ids` LIKE CONCAT(`c`.`id`, '%')
         AND `is_reviewed` = TRUE
-        AND `is_deleted` = FALSE) AS `comment_count`
+        AND `is_deleted` = FALSE) AS `reply_count`
         FROM `comment` `c`
-        <foreach collection="commentIds" item="commentId" open="WHERE `id` IN (" close=")" separator=",">
-            #{commentId}
-        </foreach>
-        <foreach collection="commentIds" item="commentId" open="UNION ALL" separator="UNION ALL">
+        WHERE `reply_comment_ids` = ''
+        <if test="query.topicId != null">AND `topic_id` = #{query.topicId}</if>
+        AND `topic_type` = #{query.topicType.value}
+        AND `is_reviewed` = TRUE
+        AND `is_deleted` = FALSE
+        <trim suffixOverrides=",">
+            ORDER BY `is_top` DESC,
+            <if test="query.orderType.value == 1">`liked_count` DESC,</if>
+            <if test="query.orderType.value == 2">`create_time` DESC</if>
+        </trim>
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="listReplyComments" resultType="top.yinzsw.blog.model.vo.CommentReplyVO">
+        <foreach collection="commentIds" item="commentId" separator="UNION ALL">
             (SELECT `id`,
             `user_id`,
+            `reply_user_id`,
             `comment_content`,
             `liked_count`,
-            `reply_user_id`,
-            `level`,
-            `is_top`,
             `is_modified`,
             `create_time`,
-            #{commentId} AS `main_comment_id`,
-            NULL AS `comment_count`
+            `update_time`,
+            #{commentId} AS `comment_root_id`
             FROM `comment`
             WHERE `reply_comment_ids` LIKE CONCAT(#{commentId}, '%')
-            ORDER BY
-            <if test="orderType.value == 1">`liked_count` DESC</if>
-            <if test="orderType.value == 2">`create_time` DESC</if>
+            ORDER BY `liked_count` DESC, `create_time` DESC
             LIMIT 3)
         </foreach>
-        ORDER BY
-        <if test="orderType.value == 1">`liked_count` DESC</if>
-        <if test="orderType.value == 2">`create_time` DESC</if>
+    </select>
+
+    <select id="listBackgroundComments" resultMap="commentBackgroundVO">
+        SELECT `c`.*,
+        `u`.`nickname`,
+        `u`.`avatar`,
+        `u`.`website`
+        FROM (SELECT `id`,
+        `user_id`,
+        `topic_type`,
+        `comment_content`,
+        `liked_count`,
+        IF(`reply_comment_ids` = '', 1,
+        LENGTH(`reply_comment_ids`) - LENGTH(REPLACE(`reply_comment_ids`, ',', '')) +
+        2) AS `level`,
+        `is_top`,
+        `is_reviewed`,
+        `is_modified`,
+        `is_deleted`,
+        `create_time`,
+        `update_time`
+        FROM `comment`
+        <where>
+            `is_deleted` = FALSE
+            <if test="query.userId != null">AND `user_id` = #{query.userId}</if>
+            <if test="query.topicType != null">AND `topic_type` = #{query.topicType.value}</if>
+            <if test="query.isTop != null">AND `is_top` = #{query.isTop}</if>
+            <if test="query.isReviewed != null">AND `is_reviewed` = #{query.isReviewed}</if>
+            <if test="query.isModified != null">AND `is_modified` = #{query.isModified}</if>
+            <if test="query.keywords != null and query.keywords.length() > 2">
+                AND MATCH(`comment_content`) AGAINST(#{query.keywords} IN BOOLEAN MODE)
+            </if>
+            <if test="query.keywords != null and 2 >= query.keywords.length()">
+                <bind name="pattern" value="'%' + query.keywords + '%'"/>
+                AND `comment_content` LIKE #{pattern}
+            </if>
+        </where>
+        ORDER BY `create_time` DESC
+        LIMIT #{page.offset},#{page.size}) `c`
+        INNER JOIN `user` `u` ON `u`.`id` = `c`.`user_id`
+    </select>
+
+    <select id="countBackgroundComments" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM `comment`
+        <where>
+            `is_deleted` = FALSE
+            <if test="query.userId != null">AND `user_id` = #{query.userId}</if>
+            <if test="query.topicType != null">AND `topic_type` = #{query.topicType.value}</if>
+            <if test="query.isTop != null">AND `is_top` = #{query.isTop}</if>
+            <if test="query.isReviewed != null">AND `is_reviewed` = #{query.isReviewed}</if>
+            <if test="query.isModified != null">AND `is_modified` = #{query.isModified}</if>
+            <if test="query.keywords != null and query.keywords.length() > 2">
+                AND MATCH(`comment_content`) AGAINST(#{query.keywords} IN BOOLEAN MODE)
+            </if>
+            <if test="query.keywords != null and 2 >= query.keywords.length()">
+                <bind name="pattern" value="'%' + query.keywords + '%'"/>
+                AND `comment_content` LIKE #{pattern}
+            </if>
+        </where>
     </select>
 </mapper>

@@ -31,6 +31,24 @@ public class ArticleVO {
     private Long id;
 
     /**
+     * 文章分类id
+     */
+    @Schema(title = "文章分类id")
+    private Long categoryId;
+
+    /**
+     * 文章分类名
+     */
+    @Schema(title = "文章分类名")
+    private String categoryName;
+
+    /**
+     * 作者
+     */
+    @Schema(title = "作者")
+    private UserVO author;
+
+    /**
      * 文章标题
      */
     @Schema(title = "文章标题")
@@ -91,22 +109,10 @@ public class ArticleVO {
     private LocalDateTime updateTime;
 
     /**
-     * 文章分类id
+     * 是否置顶
      */
-    @Schema(title = "文章分类id")
-    private Long categoryId;
-
-    /**
-     * 文章分类名
-     */
-    @Schema(title = "文章分类名")
-    private String categoryName;
-
-    /**
-     * 当日热度信息
-     */
-    @Schema(title = "当日热度信息")
-    private ArticleDayHotVO dayHot;
+    @Schema(title = "是否置顶")
+    private Boolean isTop;
 
     /**
      * 文章标签
@@ -118,11 +124,11 @@ public class ArticleVO {
      * 上一篇文章
      */
     @Schema(title = "上一篇文章")
-    private ArticleOutlineVO prevArticle;
+    private ArticlePreviewVO prevArticle;
 
     /**
      * 下一篇文章
      */
     @Schema(title = "下一篇文章")
-    private ArticleOutlineVO nextArticle;
+    private ArticlePreviewVO nextArticle;
 }

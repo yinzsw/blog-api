@@ -1,6 +1,7 @@
 package top.yinzsw.blog.service;
 
 import top.yinzsw.blog.model.request.RoleReq;
+import top.yinzsw.blog.model.vo.RoleAuthInfoVO;
 import top.yinzsw.blog.model.vo.RoleBackgroundVO;
 import top.yinzsw.blog.model.vo.RoleVO;
 
@@ -14,51 +15,36 @@ import java.util.List;
 public interface RoleService {
 
     /**
-     * 根据用户id获取用户的角色列表
-     *
-     * @param userId 用户id
-     * @return 角色id列表
-     */
-    List<Long> getRoleIdsByUserId(Long userId);
-
-    /**
-     * 根据资源id获取角色列表
-     *
-     * @param resourceId 资源id
-     * @return 角色id列表
-     */
-    List<Long> getRoleIdsByResourceId(Long resourceId);
-
-    /**
      * 获取角色列表
      *
      * @return 角色列表
      */
-    List<RoleVO> listSearchRoleVO(String keywords);
+    List<RoleVO> listRoles();
 
     /**
-     * 根据用户名关键词 获取用户角色所有信息
+     * 获取用户角色所有信息
      *
-     * @param keywords 用户名关键词
      * @return 用户角色列表信息
      */
-    List<RoleBackgroundVO> listBackgroundRoles(String keywords);
+    List<RoleBackgroundVO> listBackgroundRoles();
+
+    /**
+     * 获取授权信息
+     *
+     * @param roleId 角色id
+     * @return 授权信息
+     */
+    RoleAuthInfoVO getAuthResourceInfo(Long roleId);
 
     /**
      * 更新角色禁用状态
      *
      * @param roleId     角色id
      * @param isDisabled 禁用状态
-     * @return 是否成功
+     * @return 当前值
      */
     boolean updateRoleIsDisabled(Long roleId, Boolean isDisabled);
 
-    /**
-     * 保存或更新角色
-     *
-     * @param roleReq 角色信息
-     * @return 是否成功
-     */
     boolean saveOrUpdateRole(RoleReq roleReq);
 
     /**

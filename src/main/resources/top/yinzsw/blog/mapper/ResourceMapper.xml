@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="top.yinzsw.blog.mapper.ResourceMapper">
+    <resultMap id="resourceBackgroundVO" type="top.yinzsw.blog.model.vo.ResourceBackgroundVO" autoMapping="true">
+        <id property="id" column="id"/>
+        <collection property="roles" ofType="top.yinzsw.blog.model.vo.RoleVO" autoMapping="true">
+            <id column="role_id" property="id"/>
+            <result column="role_name" property="name"/>
+        </collection>
+    </resultMap>
+    <resultMap id="jwtResourceDTO" type="top.yinzsw.blog.core.security.jwt.JwtResourceDTO" autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="roleIds" ofType="java.lang.Long">
+            <id column="role_id"/>
+        </collection>
+    </resultMap>
+
+    <select id="listRoleResources" resultMap="jwtResourceDTO">
+        SELECT `r`.`id`,
+               `r`.`uri`,
+               `r`.`module`,
+               `r`.`method`,
+               `r`.`is_anonymous`,
+               `rmr`.`role_id`
+        FROM `resource` `r`
+                 LEFT JOIN `role_mtm_resource` `rmr` ON `r`.`id` = `rmr`.`resource_id`
+    </select>
+
+    <select id="listBackgroundResources" resultMap="resourceBackgroundVO">
+        SELECT `r`.`id`,
+        `r`.`module`,
+        `r`.`module_name`,
+        `r`.`name`,
+        `r`.`description`,
+        `r`.`uri`,
+        `r`.`method`,
+        `r`.`is_anonymous`,
+        `r`.`create_time`,
+        `r`.`update_time`,
+        `r2`.`id` AS `role_id`,
+        `r2`.`name` AS `role_name`
+        FROM (SELECT `id`,
+        `module`,
+        `module_name`,
+        `name`,
+        `description`,
+        `uri`,
+        `method`,
+        `is_anonymous`,
+        `create_time`,
+        `update_time`
+        FROM `resource`
+        <where>
+            <if test="query.module != null and query.module != ''">`module` = #{query.module}</if>
+            <if test="query.method != null">AND `method` = #{query.method}</if>
+            <if test="query.isAnonymous != null">AND `is_anonymous` = #{query.isAnonymous}</if>
+            <if test="query.roleId != null">
+                AND `id` IN (SELECT `resource_id` FROM `role_mtm_resource` WHERE `role_id` = #{query.roleId})
+            </if>
+        </where>
+        ORDER BY `module`,
+        (CASE `method`
+        WHEN 'GET' THEN 1
+        WHEN 'POST' THEN 2
+        WHEN 'PATCH' THEN 3
+        WHEN 'PUT' THEN 4
+        WHEN 'DELETE' THEN 5
+        ELSE 0 END),
+        `uri`
+        LIMIT #{page.offset}, #{page.size}) `r`
+        INNER JOIN `role_mtm_resource` `rmr` ON `r`.`id` = `rmr`.`resource_id`
+        INNER JOIN `role` `r2` ON `rmr`.`role_id` = `r2`.`id`
+    </select>
+
+    <select id="countBackgroundResources" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM `resource`
+        <where>
+            <if test="query.module != null and query.module != ''">`module` = #{query.module}</if>
+            <if test="query.method != null">AND `method` = #{query.method.name}</if>
+            <if test="query.isAnonymous != null">AND `is_anonymous` = #{query.isAnonymous}</if>
+            <if test="query.roleId != null">
+                AND `id` IN (SELECT `resource_id` FROM `role_mtm_resource` WHERE `role_id` = #{query.roleId})
+            </if>
+        </where>
+    </select>
+
+    <select id="listAccessibleResourcesByRoleId" resultType="top.yinzsw.blog.model.vo.ResourceVO">
+        SELECT `r`.`id`,
+        `r`.`module`,
+        `r`.`name`,
+        `r`.`uri`,
+        `r`.`method`,
+        `r`.`is_anonymous`
+        FROM `resource` `r`
+        INNER JOIN `role_mtm_resource` `rmr` ON `r`.`id` = `rmr`.`resource_id` AND `rmr`.`role_id` IN
+        <foreach collection="roleIds" item="roleId" open="(" close=")" separator=",">#{roleId}</foreach>
+        ORDER BY `module`,
+        (CASE `method`
+        WHEN 'GET' THEN 1
+        WHEN 'POST' THEN 2
+        WHEN 'PATCH' THEN 3
+        WHEN 'PUT' THEN 4
+        WHEN 'DELETE' THEN 5
+        ELSE 0 END),
+        `uri`
+    </select>
+</mapper>

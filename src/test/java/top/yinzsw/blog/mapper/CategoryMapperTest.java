@@ -1,18 +1,22 @@
 package top.yinzsw.blog.mapper;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import top.yinzsw.blog.model.po.CategoryPO;
+import top.yinzsw.blog.model.request.PageReq;
 
 @SpringBootTest
 class CategoryMapperTest {
-    private @Autowired CategoryMapper categoryMapper;
+    @Autowired
+    CategoryMapper categoryMapper;
 
     @Test
-    void pageSearchCategories() {
-        Page<CategoryPO> page = Page.of(1, 10);
-        Page<CategoryPO> categoryPOPage = categoryMapper.pageSearchCategories(page, null);
+    void listCategories() {
+        categoryMapper.listCategories(new PageReq(1L, 10L), 996L);
+    }
+
+    @Test
+    void listBackgroundCategories() {
+        categoryMapper.listBackgroundCategories(new PageReq(1L, 10L), null);
     }
 }

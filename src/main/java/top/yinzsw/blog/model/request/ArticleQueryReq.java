@@ -11,6 +11,7 @@ import top.yinzsw.blog.enums.ArticleStatusEnum;
 import top.yinzsw.blog.enums.ArticleTypeEnum;
 
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * 文章查询模型
@@ -44,6 +45,13 @@ public class ArticleQueryReq {
     @Min(value = 1, message = "不合法的标签id: ${validatedValue}")
     @Parameter(description = "标签id")
     private Long tagId;
+
+    /**
+     * 是否已经删除
+     */
+    @NotNull(message = "是否删除是必选项")
+    @Parameter(description = "是否已经删除", required = true)
+    private Boolean isDeleted;
 
     /**
      * 文章状态

@@ -13,7 +13,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingRequestValueException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -22,17 +21,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
-import top.yinzsw.blog.core.context.HttpContext;
+import top.yinzsw.blog.core.system.HttpContext;
 import top.yinzsw.blog.enums.ResponseCodeEnum;
 import top.yinzsw.blog.exception.BizException;
-import top.yinzsw.blog.exception.EmptyPageException;
-import top.yinzsw.blog.model.vo.PageVO;
 import top.yinzsw.blog.model.vo.ResponseVO;
 
 import javax.servlet.ServletException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -73,13 +69,6 @@ public class UnifiedException {
             httpContext.setStatusCode(HttpStatus.BAD_REQUEST);
             String msg = String.format("请求参数 '%s' 是必须的", getMissParams(e));
             return ResponseVO.fail(ResponseCodeEnum.MISSING_REQUIRED_PARAMS, msg);
-        }
-
-        if (e instanceof HttpRequestMethodNotSupportedException) {
-            httpContext.setStatusCode(HttpStatus.METHOD_NOT_ALLOWED);
-            var requestMethodException = (HttpRequestMethodNotSupportedException) e;
-            String msg = String.format("无效的请求方法%s", requestMethodException.getMethod());
-            return ResponseVO.fail(ResponseCodeEnum.INVALID_REQUEST, msg);
         }
 
         httpContext.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -163,12 +152,6 @@ public class UnifiedException {
         return ResponseVO.fail(ResponseCodeEnum.AUTHENTICATED_FAIL, e.getMessage());
     }
 
-    /**
-     * 用户访问异常
-     *
-     * @param e 拒绝访问异常
-     * @return 访问失败信息
-     */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseVO<?> authExceptionHandler(AccessDeniedException e) {
         httpContext.setStatusCode(HttpStatus.FORBIDDEN);
@@ -185,12 +168,6 @@ public class UnifiedException {
     public ResponseVO<?> bizExceptionHandler(BizException e) {
         httpContext.setStatusCode(HttpStatus.BAD_REQUEST);
         return ResponseVO.fail(e.getCode(), e.getMessage());
-    }
-
-    @ExceptionHandler(EmptyPageException.class)
-    public ResponseVO<?> emptyPageExceptionHandler(EmptyPageException e) {
-        httpContext.setStatusCode(HttpStatus.OK);
-        return ResponseVO.success(new PageVO<>(Collections.emptyList(), e.getTotalCount()));
     }
 
     /**

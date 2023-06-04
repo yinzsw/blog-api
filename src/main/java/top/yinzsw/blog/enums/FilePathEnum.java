@@ -16,7 +16,11 @@ public enum FilePathEnum {
      * 头像路径
      */
     AVATAR("avatar", "头像路径"),
-    ARTICLE("article", "文章图片路径");
+    COVER("cover", "文章封面图片"),
+    ARTICLE("article", "文章图片"),
+    PHOTO("photo", "相册"),
+    CONFIG("config", "配置图片"),
+    MARKDOWN("markdown", "文章");
 
     private final String path;
     private final String desc;

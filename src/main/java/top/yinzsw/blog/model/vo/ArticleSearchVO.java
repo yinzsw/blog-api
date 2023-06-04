@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import top.yinzsw.blog.enums.ArticleStatusEnum;
+import top.yinzsw.blog.enums.ArticleTypeEnum;
 
 import java.time.LocalDateTime;
 
@@ -35,12 +35,6 @@ public class ArticleSearchVO {
     private String articleTitle;
 
     /**
-     * 文章缩略图
-     */
-    @Schema(title = "文章缩略图")
-    private String articleCover;
-
-    /**
      * 文章内容摘要
      */
     @Schema(title = "文章内容摘要")
@@ -49,8 +43,8 @@ public class ArticleSearchVO {
     /**
      * 文章状态
      */
-    @Schema(title = "文章状态")
-    private ArticleStatusEnum articleStatus;
+    @Schema(title = "文章类型")
+    private ArticleTypeEnum articleType;
 
     /**
      * 发表时间
